@@ -3,7 +3,8 @@
     [utils.password :as pwd]
     [database.single.users-repository :as repository]
     [utils.jwt :as jwt])
-  (:import (java.util Date)))
+  (:import (java.util Date)
+           (org.bson.types ObjectId)))
 
 (defn register-user
   "Function for register new user"
@@ -11,14 +12,17 @@
   (if (or (nil? login) (nil? password))
     (throw (Exception. "Not send data for register user"))
     (let [derived-password (pwd/derive-password password)
-          document (repository/create-user connection {:login      login
+          oid (ObjectId.)
+          token (jwt/encode oid login)
+          document (repository/create-user connection {:_id oid
+                                                       :login      login
                                                        :password   derived-password
                                                        :status     "active"
+                                                       :tokens     [token]
                                                        :created_at (Date.)})
           user {:_id (get document :_id nil)
                 :login (get document :login nil)
-                :created_at (get document :created_at nil)}
-          token (jwt/encode (get document :_id nil) (get document :login))]
+                :created_at (get document :created_at nil)}]
       {:document user :token token })))
 
 (defn login-user
