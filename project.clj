@@ -12,7 +12,7 @@
                  [io.pedestal/pedestal.aws           "0.5.9"]
                  [com.novemberain/monger             "3.1.0"]
                  [buddy                              "2.0.0"]
-                 [org.clojure/data.json               "2.4.0"]]
+                 [cheshire                           "5.3.1"]]
   :main ^:skip-aot snowcrash.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all

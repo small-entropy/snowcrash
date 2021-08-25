@@ -4,6 +4,8 @@
             [io.pedestal.http.route :as route]
             [io.pedestal.http.body-params :as body-params]
             [snowcrash.service :as service]
+            [database.common.indexes :as i]
+            [utils.connection :as con]
             [interceptors.common.database_interceptor :as dbi]
             [interceptors.users.users-interceptors :as users-interceptors]))
 
@@ -28,6 +30,14 @@
       http/create-server
       http/start))
 
+(defn ensure-indexes
+  "Function for ensure indexes for server"
+  [host dbname]
+  (let [connection (con/get-connection-by-uri host dbname)]
+    (i/create-unique-index connection "users" (array-map :login 1))
+    (con/disconnect connection)))
+
 (defn -main
   []
+  (ensure-indexes "127.0.0.1" "Snowcrash")
   (start))

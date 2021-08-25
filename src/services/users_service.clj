@@ -2,19 +2,24 @@
   (:require
     [utils.password :as pwd]
     [database.single.users-repository :as repository]
-    [utils.jwt :as jwt]
-    [monger.json :as json]))
+    [utils.jwt :as jwt])
+  (:import (java.util Date)))
 
 (defn register-user
   "Function for register new user"
-  [database login password]
+  [connection login password]
   (if (or (nil? login) (nil? password))
     (throw (Exception. "Not send data for register user"))
     (let [derived-password (pwd/derive-password password)
-          document (repository/create-user database {:login login
-                                                     :password derived-password})
+          document (repository/create-user connection {:login      login
+                                                       :password   derived-password
+                                                       :status     "active"
+                                                       :created_at (Date.)})
+          user {:_id (get document :_id nil)
+                :login (get document :login nil)
+                :created_at (get document :created_at nil)}
           token (jwt/encode (get document :_id nil) (get document :login))]
-      {:document document :token token })))
+      {:document user :token token })))
 
 (defn login-user
   "Function for login user"
