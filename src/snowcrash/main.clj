@@ -17,7 +17,7 @@
   []
   (route/expand-routes
     #{["/api/v1/users/register" :post [dbi/db-interceptor (body-params/body-params) users-interceptors/register-user-interceptor] :route-name :register-user]
-      ["/api/v1/users/login" :post service/say-hello :route-name :login-user]
+      ["/api/v1/users/login" :post [dbi/db-interceptor (body-params/body-params) users-interceptors/login-user-interceptor] :route-name :login-user]
       ["/api/v1/users/logout" :get [dbi/db-interceptor service/say-hello] :route-name :logout-user]
       ["/api/v1/users/change-password" :post service/say-hello :route-name :change--user-password]}))
 

@@ -1,10 +1,12 @@
 (ns services.users-service
   (:require
     [utils.password :as pwd]
-    [database.single.users-repository :as repository]
+    [database.single.users-repository :as rep]
+    [database.nested.profile :as prof]
+    [database.nested.property :as prop]
+    [database.nested.right :as right]
     [utils.jwt :as jwt])
-  (:import (java.util Date)
-           (org.bson.types ObjectId)))
+  (:import (org.bson.types ObjectId)))
 
 (defn register-user
   "Function for register new user"
@@ -14,21 +16,35 @@
     (let [derived-password (pwd/derive-password password)
           oid (ObjectId.)
           token (jwt/encode oid login)
-          document (repository/create-user connection {:_id oid
+          document (rep/create-user connection {:_id oid
                                                        :login      login
                                                        :password   derived-password
                                                        :status     "active"
-                                                       :tokens     [token]
-                                                       :created_at (Date.)})
+                                                       :profile    (prof/get-default-user-profile)
+                                                       :properties (prop/get-default-user-properties)
+                                                       :rights     (right/get-default-user-right)
+                                                       :tokens     [token]})
           user {:_id (get document :_id nil)
                 :login (get document :login nil)
-                :created_at (get document :created_at nil)}]
+                :profile (get document :profile nil)}]
       {:document user :token token })))
 
 (defn login-user
   "Function for login user"
-  []
-  nil)
+  [connection login incoming-password]
+  (if (or (nil? login) (nil? incoming-password))
+    (throw (Exception. "Not send login or password"))
+    (let [founded-user (rep/find-user-by-username connection login)
+          derived-password (get founded-user :password nil)
+          result-check (pwd/check-password incoming-password derived-password)
+          user (if result-check
+                 {:_id (get founded-user :_id nil)
+                  :login login
+                  :profile (get founded-user :profile nil)}
+                 nil)]
+      (if (nil? user)
+        (throw (Exception. "Not correct user password"))
+        {:document user :token (first (get founded-user :tokens nil))}))))
 
 (defn logout-user
   "Function for logout user"

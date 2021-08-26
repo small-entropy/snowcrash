@@ -10,10 +10,17 @@
       [context]
       (let [request (get context :request nil)
             connection (get request :connection nil)
-            json-params (get request :json-params nil)
-            login (get json-params :login nil)
-            password (get json-params :password nil)
-            data (service/register-user connection login password)
-            token (get data :token nil)
-            document (get data :document nil)]
+            {login :login password :password} (get request :json-params nil)
+            {token :token document :document} (service/register-user connection login password)]
         (assoc context :response (ok document {:token token }))))})
+
+(def login-user-interceptor
+  {:name ::login-user-interceptor
+   :enter
+    (fn
+      [context]
+      (let [request (get context :request nil)
+            connection (get request :connection nil)
+            {login :login password :password} (get request :json-params nil)
+            {document :document token :token} (service/login-user connection login password)]
+        (assoc context :response (ok document {:token token}))))})
