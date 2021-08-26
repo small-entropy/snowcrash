@@ -12,7 +12,8 @@
                  [io.pedestal/pedestal.aws           "0.5.9"]
                  [com.novemberain/monger             "3.1.0"]
                  [buddy                              "2.0.0"]
-                 [cheshire                           "5.3.1"]]
+                 [cheshire                           "5.3.1"]
+                 [ring-cors/ring-cors                "0.1.13"]]
   :main ^:skip-aot snowcrash.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
