@@ -10,12 +10,12 @@
   (repository/create-document connection collection data))
 
 (defn find-user-by-username
-  [connection login]
+  [connection login fields]
   (let [user (first (repository/get-list-by-filter
                       connection
                       collection
                       {:login login}
-                      []))]
+                      (if (nil? fields) [] fields)))]
     (if (nil? user)
       (throw (Exception. "Can not find user by login"))
       user)))

@@ -5,8 +5,26 @@
     [database.nested.profile :as prof]
     [database.nested.property :as prop]
     [database.nested.right :as right]
-    [utils.jwt :as jwt])
+    [utils.jwt :as jwt]
+    [utils.rights :as ur]
+    [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
+
+(defn get-fields-by-rule
+  "Get list of fields by rule and owner"
+  [rule owner]
+  (let [public-fields ["_id" "login" "profile"]
+        private-fields (into [] (concat public-fields ["properties"]))
+        global-fields (into [] (concat private-fields ["tokens" "rights" "status"]))]
+    (if (= owner :my)
+      (cond
+        (true? (get rule my-global false)) global-fields
+        (true? (get rule my-private false)) private-fields
+        :else public-fields)
+      (cond
+        (true? (get rule other-global false)) global-fields
+        (true? (get rule other-private false)) private-fields
+        :else public-fields))))
 
 (defn register-user
   "Function for register new user"
@@ -17,16 +35,15 @@
           oid (ObjectId.)
           token (jwt/encode oid login)
           document (rep/create-user connection {:_id oid
-                                                       :login      login
-                                                       :password   derived-password
-                                                       :status     "active"
-                                                       :profile    (prof/get-default-user-profile)
-                                                       :properties (prop/get-default-user-properties)
-                                                       :rights     (right/get-default-user-right)
-                                                       :tokens     [token]})
-          user {:_id (get document :_id nil)
-                :login (get document :login nil)
-                :profile (get document :profile nil)}]
+                                                :login      login
+                                                :password   derived-password
+                                                :status     "active"
+                                                :profile    (prof/get-default-user-profile)
+                                                :properties (prop/get-default-user-properties)
+                                                :rights     (right/get-default-user-right)
+                                                :tokens     [token]})
+          rule (ur/get-user-rule document users-collection-name :read)
+          user (rep/find-user-by-username connection login (get-fields-by-rule rule :my))]
       {:document user :token token })))
 
 (defn login-user
@@ -34,17 +51,14 @@
   [connection login incoming-password]
   (if (or (nil? login) (nil? incoming-password))
     (throw (Exception. "Not send login or password"))
-    (let [founded-user (rep/find-user-by-username connection login)
+    (let [founded-user (rep/find-user-by-username connection login [])
           derived-password (get founded-user :password nil)
-          result-check (pwd/check-password incoming-password derived-password)
-          user (if result-check
-                 {:_id (get founded-user :_id nil)
-                  :login login
-                  :profile (get founded-user :profile nil)}
-                 nil)]
-      (if (nil? user)
+          result-check (pwd/check-password incoming-password derived-password)]
+      (if (false? result-check)
         (throw (Exception. "Not correct user password"))
-        {:document user :token (first (get founded-user :tokens nil))}))))
+        (let [rule (ur/get-user-rule founded-user users-collection-name :read)
+              user (rep/find-user-by-username connection login (get-fields-by-rule rule :my))]
+          {:document user :token (first (get founded-user :tokens nil))})))))
 
 (defn logout-user
   "Function for logout user"
