@@ -12,7 +12,7 @@
             connection (get request :connection nil)
             {login :login password :password} (get request :json-params nil)
             {token :token document :document} (service/register-user connection login password)]
-        (assoc context :response (ok document {:token token }))))})
+        (assoc context :response (created document {:token token }))))})
 
 (def login-user-interceptor
   {:name ::login-user-interceptor

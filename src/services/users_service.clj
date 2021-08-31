@@ -48,17 +48,18 @@
 
 (defn login-user
   "Function for login user"
-  [connection login incoming-password]
-  (if (or (nil? login) (nil? incoming-password))
-    (throw (Exception. "Not send login or password"))
-    (let [founded-user (rep/find-user-by-username connection login [])
-          derived-password (get founded-user :password nil)
-          result-check (pwd/check-password incoming-password derived-password)]
-      (if (false? result-check)
-        (throw (Exception. "Not correct user password"))
-        (let [rule (ur/get-user-rule founded-user users-collection-name :read)
-              user (rep/find-user-by-username connection login (get-fields-by-rule rule :my))]
-          {:document user :token (first (get founded-user :tokens nil))})))))
+  ([connection login incoming-password]
+   (if (or (nil? login) (nil? incoming-password))
+     (throw (Exception. "Not send login or password"))
+     (let [founded-user (rep/find-user-by-username connection login [])
+           derived-password (get founded-user :password nil)
+           result-check (pwd/check-password incoming-password derived-password)]
+       (if (false? result-check)
+         (throw (Exception. "Not correct user password"))
+         (let [rule (ur/get-user-rule founded-user users-collection-name :read)
+               user (rep/find-user-by-username connection login (get-fields-by-rule rule :my))]
+           {:document user :token (first (get founded-user :tokens nil))})))))
+  ([token] nil))
 
 (defn logout-user
   "Function for logout user"

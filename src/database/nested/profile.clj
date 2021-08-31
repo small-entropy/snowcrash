@@ -13,4 +13,7 @@
    {:_id (ObjectId.) :key "country" :value nil}
    {:_id (ObjectId.) :key "city" :value nil}
    {:_id (ObjectId.) :key "language" :value nil}
+   {:_id (ObjectId.) :key "firstName" :value nil}
+   {:_id (ObjectId.) :key "lastName" :value nil}
+   {:_id (ObjectId.) :key "patronymic" :value nil}
    ])
