@@ -16,3 +16,5 @@
 
 (defonce database-name "Snowcrash")
 (defonce database-host "127.0.0.1")
+(defonce port 8822)
+

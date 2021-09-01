@@ -13,7 +13,9 @@
                  [com.novemberain/monger             "3.1.0"]
                  [buddy                              "2.0.0"]
                  [cheshire                           "5.3.1"]
-                 [ring-cors/ring-cors                "0.1.13"]]
+                 [ring-cors/ring-cors                "0.1.13"]
+                 [com.stuartsierra/component         "1.0.0"]
+                 [environ                            "1.2.0"]]
   :main ^:skip-aot snowcrash.main
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
