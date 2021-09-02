@@ -1,4 +1,4 @@
-(ns components.server.pedestal
+(ns components.pedestal
   (:require [com.stuartsierra.component :as component]
             [io.pedestal.http :as http]))
 
@@ -12,7 +12,7 @@
   (start [this]
     (if service
       this
-      (cond-> service-map
+      (cond-> (:service-map service-map)
               true http/default-interceptors
               true http/dev-interceptors
               true http/create-server

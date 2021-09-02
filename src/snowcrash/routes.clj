@@ -13,12 +13,13 @@
 
 (defn get-expanded-routes
   "Function for get expanded routes"
-  []
-  (route/expand-routes
-    #{["/api/v1/users/register"
-       :post [dbi/db-interceptor (body-params/body-params) users-interceptors/register-user-interceptor]
-       :route-name
-       :register-user]
-      ["/api/v1/users/login"
-       :post [dbi/db-interceptor (body-params/body-params) users-interceptors/login-user-interceptor]
-       :route-name :login-user]}))
+  [database-component]
+  (let [database (:database database-component)]
+    (route/expand-routes
+      #{["/api/v1/users/register"
+         :post [(dbi/db-interceptor database) (body-params/body-params) users-interceptors/register-user-interceptor]
+         :route-name
+         :register-user]
+        ["/api/v1/users/login"
+         :post [(dbi/db-interceptor database) (body-params/body-params) users-interceptors/login-user-interceptor]
+         :route-name :login-user]})))
