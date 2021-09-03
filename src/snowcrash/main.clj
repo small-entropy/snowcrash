@@ -4,7 +4,8 @@
             [com.stuartsierra.component :as component]
             [database.common.indexes :as indexes]
             [utils.connection :as connection]
-            [utils.constants :refer :all]))
+            [utils.constants :refer :all]
+            [snowcrash.routes :as routes]))
 
 (defn- ensure-indexes
   "Function for ensure indexes for server"
@@ -16,6 +17,7 @@
 (defn -main
   "Main entry point"
   []
-  (let [system (system/new-system (config/get-config))]
+  (let [system (system/new-system
+                 (config/get-config) routes/get-expanded-routes)]
     (ensure-indexes database-host database-name)
     (component/start system)))

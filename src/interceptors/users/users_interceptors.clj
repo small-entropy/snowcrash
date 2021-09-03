@@ -8,19 +8,19 @@
    :enter
     (fn
       [context]
-      (let [request (get context :request nil)
-            connection (get request :connection nil)
+      (let [{request :request guid :guid connection :connection} context
             {login :login password :password} (get request :json-params nil)
             {token :token document :document} (service/register-user connection login password)]
-        (assoc context :response (created document {:token token }))))})
+        (assoc context :response (created guid document {:token token
+                                                         :request guid}))))})
 
 (def login-user-interceptor
   {:name ::login-user-interceptor
    :enter
     (fn
       [context]
-      (let [request (get context :request nil)
-            connection (get request :connection nil)
+      (let [{request :request guid :guid connection :connection} context
             {login :login password :password} (get request :json-params nil)
             {document :document token :token} (service/login-user connection login password)]
-        (assoc context :response (ok document {:token token}))))})
+        (assoc context :response (ok guid document {:token token
+                                                    :request guid}))))})

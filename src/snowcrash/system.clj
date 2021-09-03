@@ -7,13 +7,14 @@
             [utils.constants :refer :all]))
 
 (defn new-system
-  [env]
+  [env get-expanded-routes]
   (component/system-map
     :env env
+    :get-expanded-routes get-expanded-routes
     :database (m/new-monger "127.0.0.1" "Snowcrash")
     :service-map (component/using
                    (sm/new-service-map)
-                   [:env :database])
+                   [:env :get-expanded-routes :database])
     :pedestal
     (component/using
       (p/new-pedestal)
