@@ -17,5 +17,9 @@
                       {:login login}
                       (if (nil? fields) [] fields)))]
     (if (nil? user)
-      (throw (Exception. "Can not find user by login"))
+      (throw (ex-info
+               "Can not find user by login"
+               {:alias "can-not-find-user"
+                :info {:login login
+                       :fields fields}}))
       user)))

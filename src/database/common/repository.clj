@@ -4,7 +4,8 @@
     [monger.core :as mg]
     [monger.collection :as mc]
     [monger.query :as mq]
-    [utils.connection :as con]))
+    [utils.connection :as con]
+    [utils.helpers :refer :all]))
 
 (defn get-list-by-filter
   "Function for get collection documents by filter"
@@ -31,7 +32,11 @@
   [connection collection filter as-map fields]
   (let [db (con/get-db-from-connection connection)]
     (if (or (nil? collection) (nil? filter))
-      (throw (Exception. "Not send collection name or filer"))
+      (throw (ex-info
+               "Not send collection name or filer"
+               {:alias "can-not-get-collection-document"
+                :info {:collection (not-send collection)
+                       :name (not-send name)}}))
       (if (true? as-map)
         (mc/find-one-as-map db collection filter fields)
         (mc/find-one db collection filter fields)))))

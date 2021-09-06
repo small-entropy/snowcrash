@@ -1,7 +1,8 @@
 (ns database.common.indexes
   (:require
     [utils.connection :as con]
-    [monger.collection :as mc]))
+    [monger.collection :as mc]
+    [utils.helpers :refer :all]))
 
 (defn check-index-on-exist
   "Function for check index on exist"
@@ -14,7 +15,11 @@
   "Function for create unique index"
   [connection collection field]
   (if (or (nil? collection) (nil? field))
-    (throw (Exception. "Not send some data"))
+    (throw (ex-info
+             "Not send some data"
+             {:alias "can-not-create-unique-index"
+              :info {:collection (not-send collection)
+                     :field (not-send field)}}))
     (let [db (con/get-db-from-connection connection)
           exist (check-index-on-exist connection collection)]
       (if (nil? db)
@@ -27,7 +32,12 @@
   "Function for create index (full featured)"
   [connection collection name opts]
   (if (or (nil? collection) (nil? name) (nil? opts))
-    (throw (Exception. "Not send some data"))
+    (throw (ex-info
+             "Not send some data"
+             {:alias "can-not-create-index"
+              :info {:collection (not-send collection)
+                     :name (not-send name)
+                     :opts (not-send opts)}}))
     (let [db (con/get-db-from-connection connection)]
       (mc/ensure-index db collection name opts))))
 
@@ -35,6 +45,10 @@
   "Function for drop index"
   [connection collection name]
   (if (or (nil? connection) (nil? name))
-    (throw (Exception. "Not send some data"))
+    (throw (ex-info
+             "Not send some data"
+             {:alias "can-not-drop-index"
+              :info {:collection (not-send collection)
+                     :name (not-send name)}}))
     (let [db (con/get-db-from-connection connection)]
       (mc/drop-index db collection name))))

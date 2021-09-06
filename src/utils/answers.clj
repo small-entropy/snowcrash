@@ -40,5 +40,7 @@
   (get-answer guid data meta 201 "created"))
 
 (defn fail
-  [guid error meta]
-  (get-error guid error meta 500 "fail"))
+  ([guid error meta]
+   (get-error guid error meta 500 "fail"))
+  ([guid error meta code alias]
+   (get-error guid error meta code alias)))
