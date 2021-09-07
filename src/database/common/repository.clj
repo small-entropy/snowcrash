@@ -28,7 +28,7 @@
       (mc/count db collection))))
 
 (defn get-collection-document
-  "Function for get database.single document from collection"
+  "Function for get database single document from collection"
   [connection collection filter as-map fields]
   (let [db (con/get-db-from-connection connection)]
     (if (or (nil? collection) (nil? filter))

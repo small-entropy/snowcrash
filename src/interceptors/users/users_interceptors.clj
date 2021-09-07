@@ -24,3 +24,14 @@
             {document :document token :token} (service/login-user connection login password)]
         (assoc context :response (ok guid document {:token token
                                                     :request guid}))))})
+
+(def autologin-user-interceptor
+  {:name ::login-user-interceptor
+   :enter
+         (fn
+           [context]
+           (let [{request :request guid :guid connection :connection} context
+                 {token "authorization" } (get request :headers nil)
+                 {document :document token :token} (service/login-user connection token)]
+             (assoc context :response (ok guid document {:token token
+                                                         :request guid}))))})

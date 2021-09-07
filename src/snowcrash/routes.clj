@@ -32,4 +32,9 @@
                    (dbi/db-interceptor database)
                    (body-params/body-params)
                    users-interceptors/login-user-interceptor]
-            :route-name :login-user]}))))
+            :route-name :login-user]
+           ["/api/v1/users/autologin"
+            :get [errors/errors
+                  aguidi/attach-guid
+                  (dbi/db-interceptor database)
+                  users-interceptors/autologin-user-interceptor]]}))))

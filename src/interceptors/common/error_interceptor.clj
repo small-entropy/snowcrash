@@ -16,6 +16,7 @@
     "can-not-get-collection-document" 500
     "can-not-find-user" 404
     "can-not-login" 401
+    "not-send-token" 401
     "not-send-password" 400
     :else 502))
 

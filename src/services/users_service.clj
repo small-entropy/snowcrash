@@ -44,7 +44,7 @@
                                                 :rights     (right/get-default-user-right)
                                                 :tokens     [token]})
           rule (ur/get-user-rule document users-collection-name :read)
-          user (rep/find-user-by-username connection login (get-fields-by-rule rule :my))]
+          user (rep/find-user-by-login connection login (get-fields-by-rule rule :my))]
       {:document user :token token })))
 
 (defn login-user
@@ -56,7 +56,7 @@
               {:alias "can-not-login"
                :info {:login (not-send login)
                       :password (not-send incoming-password)}}))
-     (let [founded-user (rep/find-user-by-username connection login [])
+     (let [founded-user (rep/find-user-by-login connection login [])
            derived-password (get founded-user :password nil)
            result-check (pwd/check-password incoming-password derived-password)]
        (if (false? result-check)
@@ -65,9 +65,19 @@
                   {:alias "not-send-password"
                    :info {:password incoming-password}}))
          (let [rule (ur/get-user-rule founded-user users-collection-name :read)
-               user (rep/find-user-by-username connection login (get-fields-by-rule rule :my))]
+               user (rep/find-user-by-login connection login (get-fields-by-rule rule :my))]
            {:document user :token (first (get founded-user :tokens nil))})))))
-  ([token] nil))
+  ([connection token]
+   (if (nil? token)
+     (throw (ex-info
+              "Not send token"
+              {:alias "not-send-token"
+               :info {:token (not-send token)}}))
+     (let [oid (jwt/decode-and-get token :id)
+           founded-user (rep/find-user-by-id connection oid [])
+           rule (ur/get-user-rule founded-user users-collection-name :read)
+           user (rep/find-user-by-id connection oid (get-fields-by-rule rule :my))]
+       {:document user :token token}))))
 
 (defn logout-user
   "Function for logout user"
