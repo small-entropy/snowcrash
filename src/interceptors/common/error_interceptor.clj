@@ -31,6 +31,10 @@
        (case ex-type
          :java.lang.Exception
          (error-answer context message default-meta)
+         :com.mongodb.DuplicateKeyException
+         (error-answer context
+                       "Failed with duplicate key error"
+                       (merge default-meta {:description message}))
          :clojure.lang.ExceptionInfo
          (let [meta (merge default-meta (:info (ex-data exception)))
                alias (:alias (ex-data exception))
