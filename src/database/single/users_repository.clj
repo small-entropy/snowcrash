@@ -19,7 +19,8 @@
   (let [user (repository/get-collection-document
                       connection
                       users-collection-name
-                      {:login login}
+                      {:login login
+                       :status "active"}
                       true
                       (get-fields fields))]
     (if (nil? user)
@@ -38,7 +39,8 @@
    (let [user (repository/get-collection-document
                 connection
                 users-collection-name
-                {:_id (if (string? id) (ObjectId. ^String id) id)}
+                {:_id (if (string? id) (ObjectId. ^String id) id)
+                 :status "active"}
                 true
                 (get-fields fields))]
      (if (nil? user)
@@ -55,7 +57,7 @@
   (let [opts {:collection users-collection-name
               :limit limit
               :skip skip}
-        filter {}
+        filter {:status "active"}
         sort {}
         users (repository/get-list-by-query connection opts filter sort fields)]
     (if (= (count users) 0)
@@ -68,4 +70,4 @@
 
 (defn get-total
   [connection]
-  (repository/get-collection-count connection users-collection-name))
+  (repository/get-collection-count connection users-collection-name {:status "active"}))

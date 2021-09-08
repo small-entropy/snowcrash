@@ -21,11 +21,11 @@
 
 (defn get-collection-count
   "Function for get collection count"
-  [connection collection]
+  [connection collection filter]
   (let [db (con/get-db-from-connection connection)]
     (if (nil? collection)
       (throw (Exception. "Not send collection name"))
-      (mc/count db collection))))
+      (mc/count db collection (if (nil? filter) {} filter)))))
 
 (defn get-collection-document
   "Function for get database single document from collection"
