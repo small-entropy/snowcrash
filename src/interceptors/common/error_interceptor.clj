@@ -8,6 +8,7 @@
     (assoc context :response (fail (get meta :request nil) message meta code alias))))
 
 (defn- get-code
+  "Private function for get HTTP code for errors by alias"
   [alias]
   (case alias
     "can-not-create-unique-index" 500
@@ -18,6 +19,7 @@
     "can-not-login" 401
     "not-send-token" 401
     "not-send-password" 400
+    "not-found" 404
     :else 502))
 
 (def errors

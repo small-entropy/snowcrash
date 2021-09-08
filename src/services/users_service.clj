@@ -17,15 +17,17 @@
   (let [public-fields ["_id" "login" "profile"]
         private-fields (into [] (concat public-fields ["properties"]))
         global-fields (into [] (concat private-fields ["tokens" "rights" "status"]))]
-    (if (= owner :my)
-      (cond
-        (true? (get rule my-global false)) global-fields
-        (true? (get rule my-private false)) private-fields
-        :else public-fields)
-      (cond
-        (true? (get rule other-global false)) global-fields
-        (true? (get rule other-private false)) private-fields
-        :else public-fields))))
+    (if (or (nil? rule) (nil? owner))
+      public-fields
+      (if (= owner :my)
+        (cond
+          (true? (get rule my-global false)) global-fields
+          (true? (get rule my-private false)) private-fields
+          :else public-fields)
+        (cond
+          (true? (get rule other-global false)) global-fields
+          (true? (get rule other-private false)) private-fields
+          :else public-fields)))))
 
 (defn register-user
   "Function for register new user"
@@ -41,8 +43,7 @@
                                                 :status     "active"
                                                 :profile    (prof/get-default-user-profile)
                                                 :properties (prop/get-default-user-properties)
-                                                :rights     (right/get-default-user-right)
-                                                :tokens     [token]})
+                                                :rights     (right/get-default-user-right)})
           rule (ur/get-user-rule document users-collection-name :read)
           user (rep/find-user-by-login connection login (get-fields-by-rule rule :my))]
       {:document user :token token })))
@@ -66,7 +67,7 @@
                    :info {:password incoming-password}}))
          (let [rule (ur/get-user-rule founded-user users-collection-name :read)
                user (rep/find-user-by-login connection login (get-fields-by-rule rule :my))]
-           {:document user :token (first (get founded-user :tokens nil))})))))
+           {:document user :token (jwt/encode (get user :_id nil) login)})))))
   ([connection token]
    (if (nil? token)
      (throw (ex-info
@@ -79,6 +80,31 @@
            user (rep/find-user-by-id connection oid (get-fields-by-rule rule :my))]
        {:document user :token token}))))
 
+(defn- get-users-list-by-rule
+  "Private function for get users list with authorization"
+  [connection token limit skip]
+  (let [oid (jwt/decode-and-get token :id)
+        founded-user (rep/find-user-by-id connection oid [])
+        rule (ur/get-user-rule founded-user users-collection-name :read)
+        users (rep/get-users-list connection limit skip (get-fields-by-rule rule :other))
+        total (rep/get-total connection)]
+    {:documents users :token token :total total }))
+
+(defn- get-users-list-without-rule
+  "Private function for get users list without authorization"
+  [connection limit skip]
+  (let [fields (get-fields-by-rule nil nil)
+        users (rep/get-users-list connection limit skip fields)
+        total (rep/get-total connection)]
+    {:documents users :token (not-send nil) :total total}))
+
+(defn get-users-list
+  "Public function for get users list"
+  [connection token limit skip]
+  (if (nil? token)
+    (get-users-list-without-rule connection limit skip)
+    (get-users-list-by-rule connection token limit skip)))
+
 (defn logout-user
   "Function for logout user"
   []
@@ -89,12 +115,9 @@
   []
   nil)
 
-(defn get-users-list
-  "Function for get users list"
-  []
-  nil)
+
 
 (defn get-user
   "Function for get user"
   []
-  nil)
+  {:msg "NONE"})

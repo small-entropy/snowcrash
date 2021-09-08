@@ -1,9 +1,8 @@
 (ns database.single.users-repository
   (:require
-    [database.common.repository :as repository])
+    [database.common.repository :as repository]
+    [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
-
-(defonce collection "users")
 
 (defn- get-fields
   [fields]
@@ -12,14 +11,14 @@
 (defn create-user
   "Function for create user in database"
   [connection data]
-  (repository/create-document connection collection data))
+  (repository/create-document connection users-collection-name data))
 
 (defn find-user-by-login
   "Function for find user by login"
   [connection login fields]
   (let [user (repository/get-collection-document
                       connection
-                      collection
+                      users-collection-name
                       {:login login}
                       true
                       (get-fields fields))]
@@ -38,7 +37,7 @@
   [connection id fields]
    (let [user (repository/get-collection-document
                 connection
-                collection
+                users-collection-name
                 {:_id (if (string? id) (ObjectId. ^String id) id)}
                 true
                 (get-fields fields))]
@@ -49,3 +48,24 @@
                  :info {:id id
                         :fields fields}}))
        user)))
+
+(defn get-users-list
+  "Function for get users"
+  [connection limit skip fields]
+  (let [opts {:collection users-collection-name
+              :limit limit
+              :skip skip}
+        filter {}
+        sort {}
+        users (repository/get-list-by-query connection opts filter sort fields)]
+    (if (= (count users) 0)
+      (throw (ex-info
+               "Users list is empty"
+               {:alias "not-found"
+                :info {:limit limit
+                       :skip skip}}))
+      users)))
+
+(defn get-total
+  [connection]
+  (repository/get-collection-count connection users-collection-name))

@@ -10,6 +10,7 @@
             [interceptors.common.error-interceptor :as errors]
             [utils.constants :refer :all]))
 
+
 (defn- response-hello [request]
   {:status 200 :body "Hello, world"})
 
@@ -37,4 +38,11 @@
             :get [errors/errors
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
-                  users-interceptors/autologin-user-interceptor]]}))))
+                  users-interceptors/autologin-user-interceptor]
+            :route-name :autologin-user]
+           ["/api/v1/users"
+            :get [errors/errors
+                  aguidi/attach-guid
+                  (dbi/db-interceptor database)
+                  users-interceptors/list-users-interceptor]
+            :route-name :list-users]}))))
