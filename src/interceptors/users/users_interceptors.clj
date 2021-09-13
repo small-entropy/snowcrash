@@ -56,3 +56,19 @@
                                                      :total total
                                                      :limit limit
                                                      :skip skip}))))})
+
+(def entity-users-interceptor
+  {:name ::entity-users-interceptor
+   :enter
+   (fn [context]
+     (let [{is-owner :is-owner
+            user-id :user-id
+            guid :guid
+            token :token
+            connection :connection
+            decoded-id :decoded-id} context
+           {document :document} (if (nil? token)
+                                  (service/get-user connection user-id)
+                                  (service/get-user connection user-id decoded-id is-owner))]
+       (assoc context :response (ok guid document {:token (not-send token)
+                                                   :request guid}))))})

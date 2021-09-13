@@ -8,6 +8,7 @@
             [interceptors.common.attach-guid :as aguidi]
             [interceptors.users.users-interceptors :as users-interceptors]
             [interceptors.common.error-interceptor :as errors]
+            [interceptors.common.check-asccess :as check-access]
             [utils.constants :refer :all]))
 
 
@@ -19,7 +20,7 @@
      [database-component]
      (let [database (:database database-component)]
        (route/expand-routes
-         #{["/api/v1/users/register"
+         #{["/api/v1/user/register"
             :post [errors/errors
                    aguidi/attach-guid
                    (dbi/db-interceptor database)
@@ -27,14 +28,14 @@
                    users-interceptors/register-user-interceptor]
             :route-name
             :register-user]
-           ["/api/v1/users/login"
+           ["/api/v1/user/login"
             :post [errors/errors
                    aguidi/attach-guid
                    (dbi/db-interceptor database)
                    (body-params/body-params)
                    users-interceptors/login-user-interceptor]
             :route-name :login-user]
-           ["/api/v1/users/autologin"
+           ["/api/v1/user/autologin"
             :get [errors/errors
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
@@ -45,4 +46,11 @@
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
                   users-interceptors/list-users-interceptor]
-            :route-name :list-users]}))))
+            :route-name :list-users]
+           ["/api/v1/users/:user-id"
+           :get [errors/errors
+                 aguidi/attach-guid
+                 check-access/check-access
+                 (dbi/db-interceptor database)
+                 users-interceptors/entity-users-interceptor]
+           :route-name :entity-user]}))))

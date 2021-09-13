@@ -105,6 +105,20 @@
     (get-users-list-without-rule connection limit skip)
     (get-users-list-by-rule connection token limit skip)))
 
+
+(defn get-user
+  "Function for get user"
+  ([connection user-id]
+   (let [fields (get-fields-by-rule nil nil)
+         user (rep/find-user-by-id connection user-id fields)]
+     {:document user}))
+  ([connection user-id decoded-id is-owner]
+   (let [founded-user (rep/find-user-by-id connection decoded-id [])
+         rule (ur/get-user-rule founded-user users-collection-name :read)
+         fields (get-fields-by-rule rule (if (true? is-owner) :my :other))
+         user (rep/find-user-by-id connection user-id fields)]
+     {:document user})))
+
 (defn logout-user
   "Function for logout user"
   []
@@ -116,8 +130,3 @@
   nil)
 
 
-
-(defn get-user
-  "Function for get user"
-  []
-  {:msg "NONE"})
