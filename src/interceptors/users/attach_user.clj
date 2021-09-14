@@ -21,5 +21,8 @@
             user-id :user-id
             decoded-id :decoded-id
             is-owner :is-owner} (get context :request nil)
-           user (find-user connection user-id decoded-id is-owner)]
-       (assoc context :user user)))})
+           {document :document
+            decoded-user :decoded-user} (find-user connection user-id decoded-id is-owner)]
+       (assoc context
+         :user document
+         :decoded-user decoded-user)))})

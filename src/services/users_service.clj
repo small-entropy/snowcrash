@@ -111,13 +111,13 @@
   ([connection user-id]
    (let [fields (get-fields-by-rule nil nil)
          user (rep/find-user-by-id connection user-id fields)]
-     {:document user}))
+     {:document user :decoded-user user}))
   ([connection user-id decoded-id is-owner]
    (let [founded-user (rep/find-user-by-id connection decoded-id [])
          rule (ur/get-user-rule founded-user users-collection-name :read)
          fields (get-fields-by-rule rule (if (true? is-owner) :my :other))
          user (rep/find-user-by-id connection user-id fields)]
-     {:document user})))
+     {:document user :decoded-user founded-user})))
 
 (defn logout-user
   "Function for logout user"
