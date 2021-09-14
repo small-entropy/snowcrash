@@ -20,7 +20,7 @@
                       connection
                       users-collection-name
                       {:login login
-                       :status "active"}
+                       :status default-status}
                       true
                       (get-fields fields))]
     (if (nil? user)
@@ -40,7 +40,7 @@
                 connection
                 users-collection-name
                 {:_id (if (string? id) (ObjectId. ^String id) id)
-                 :status "active"}
+                 :status default-status}
                 true
                 (get-fields fields))]
      (if (nil? user)
@@ -57,7 +57,7 @@
   (let [opts {:collection users-collection-name
               :limit limit
               :skip skip}
-        filter {:status "active"}
+        filter {:status default-status}
         sort {}
         users (repository/get-list-by-query connection opts filter sort fields)]
     (if (= (count users) 0)

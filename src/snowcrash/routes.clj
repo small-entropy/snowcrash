@@ -8,7 +8,7 @@
             [interceptors.common.attach-guid :as aguidi]
             [interceptors.users.users-interceptors :as users-interceptors]
             [interceptors.common.error-interceptor :as errors]
-            [interceptors.common.check-asccess :as check-access]
+            [interceptors.common.attach-user-data :as attach-user-data]
             [utils.constants :refer :all]))
 
 
@@ -50,7 +50,7 @@
            ["/api/v1/users/:user-id"
            :get [errors/errors
                  aguidi/attach-guid
-                 check-access/check-access
+                 attach-user-data/attach-user-data
                  (dbi/db-interceptor database)
                  users-interceptors/entity-users-interceptor]
            :route-name :entity-user]}))))

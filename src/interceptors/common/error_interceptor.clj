@@ -18,7 +18,8 @@
     "can-not-find-user" 404
     "can-not-login" 401
     "not-send-token" 401
-    "not-send-password" 400
+    "not-send-password" 401
+    "not-send-some-data" 401
     "not-found" 404
     :else 502))
 

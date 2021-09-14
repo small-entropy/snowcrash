@@ -2,7 +2,8 @@
   (:require
     [services.users-service :as service]
     [utils.answers :refer :all]
-    [utils.helpers :refer :all]))
+    [utils.helpers :refer :all]
+    [utils.constants :refer :all]))
 
 ;; Interceptor for register user
 (def register-user-interceptor
@@ -34,7 +35,7 @@
    (fn
      [context]
      (let [{request :request guid :guid connection :connection} context
-           {token "authorization" } (get request :headers nil)
+           {token auth-header } (get request :headers nil)
            {document :document token :token} (service/login-user connection token)]
        (assoc context :response (ok guid document {:token token
                                                    :request guid}))))})
@@ -49,7 +50,7 @@
             query-params (get request :query-params nil)
             limit (Integer/parseInt (get query-params :limit 10))
             skip (Integer/parseInt (get query-params :skip 0))
-            {token "authorization"} (get request :headers nil)
+            {token auth-header} (get request :headers nil)
             {documents :documents token :token total :total} (service/get-users-list connection token limit skip)]
         (assoc context :response (ok guid documents {:token token
                                                      :request guid

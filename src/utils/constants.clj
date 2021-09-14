@@ -18,3 +18,5 @@
 (defonce database-host "127.0.0.1")
 (defonce port 8822)
 
+(defonce auth-header "authorization")
+(defonce default-status "active")
