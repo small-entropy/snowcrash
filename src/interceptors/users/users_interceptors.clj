@@ -9,8 +9,7 @@
 (def register-user-interceptor
   {:name ::register-user-interceptor
    :enter
-    (fn
-      [context]
+    (fn [context]
       (let [{request :request guid :guid connection :connection} context
             {login :login password :password} (get request :json-params nil)
             {token :token document :document} (service/register-user connection login password)]
@@ -20,8 +19,7 @@
 (def login-user-interceptor
   {:name ::login-user-interceptor
    :enter
-    (fn
-      [context]
+    (fn [context]
       (let [{request :request guid :guid connection :connection} context
             {login :login password :password} (get request :json-params nil)
             {document :document token :token} (service/login-user connection login password)]
@@ -32,11 +30,33 @@
 (def autologin-user-interceptor
   {:name ::autologin-user-interceptor
    :enter
-   (fn
-     [context]
+   (fn [context]
      (let [{request :request guid :guid connection :connection} context
-           {token auth-header } (get request :headers nil)
-           {document :document token :token} (service/login-user connection token)]
+           {header-token auth-header} (get request :headers nil)
+           {document :document token :token} (service/login-user connection header-token)]
+       (assoc context :response (ok guid document {:token token
+                                                   :request guid}))))})
+
+;; Interceptor for change user password
+(def change-user-password-interceptor
+  {:name ::change-user-password-interceptor
+   :enter
+   (fn [context]
+     (let [{request :request guid :guid connection :connection} context
+           {header-token auth-header} (get request :headers nil)
+           {password :password} (get request :json-params nil)
+           {document :document} (service/change-user-password connection header-token password)]
+       (assoc context :response (ok guid document {:token header-token
+                                                   :request guid}))))})
+
+;; Interceptor for logout user
+(def logout-user-interceptor
+  {:name ::logout-user-interceptor
+   :enter
+   (fn [context]
+     (let [{request :request guid :guid} context
+           {header-token auth-header} (get request :headers nil)
+           {document :document token :token} (service/logout-user header-token)]
        (assoc context :response (ok guid document {:token token
                                                    :request guid}))))})
 
@@ -44,20 +64,19 @@
 (def list-users-interceptor
   {:name ::list-users-interceptor
    :enter
-    (fn
-      [context]
+    (fn [context]
       (let [{request :request guid :guid connection :connection} context
             query-params (get request :query-params nil)
             limit (Integer/parseInt (get query-params :limit 10))
             skip (Integer/parseInt (get query-params :skip 0))
-            {token auth-header} (get request :headers nil)
-            {documents :documents token :token total :total} (service/get-users-list connection token limit skip)]
+            {header-token auth-header} (get request :headers nil)
+            {documents :documents token :token total :total} (service/get-users-list connection header-token limit skip)]
         (assoc context :response (ok guid documents {:token token
                                                      :request guid
                                                      :total total
                                                      :limit limit
                                                      :skip skip}))))})
-
+;; Interceptor for get user document
 (def entity-users-interceptor
   {:name ::entity-users-interceptor
    :enter

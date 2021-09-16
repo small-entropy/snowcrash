@@ -68,6 +68,12 @@
                        :skip skip}}))
       users)))
 
+(defn update-password
+  "Function for update user password"
+  [connection decoded-id to-update fields]
+  (repository/update-document connection users-collection-name decoded-id to-update)
+  (find-user-by-id connection decoded-id fields))
+
 (defn get-total
   [connection]
   (repository/get-collection-count connection users-collection-name {:status "active"}))

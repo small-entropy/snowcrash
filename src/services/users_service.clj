@@ -40,7 +40,7 @@
           document (rep/create-user connection {:_id oid
                                                 :login      login
                                                 :password   derived-password
-                                                :status     "active"
+                                                :status     default-status
                                                 :profile    (prof/get-default-user-profile)
                                                 :properties (prop/get-default-user-properties)
                                                 :rights     (right/get-default-user-right)})
@@ -121,12 +121,24 @@
 
 (defn logout-user
   "Function for logout user"
-  []
-  nil)
+  [token]
+  (let [token (jwt/decode token)
+        id (get token :id default-empty-value)
+        login (get token :login default-empty-value)]
+    {:document {:id id :login login}
+     :token default-empty-value}))
 
 (defn change-user-password
   "Function for change user password"
-  []
-  nil)
-
-
+  [connection token password]
+  (let [decoded-id (jwt/decode-and-get token :id)
+        founded-user (rep/find-user-by-id connection decoded-id [])
+        founded-user-password (get founded-user :password nil)
+        rule (ur/get-user-rule founded-user users-collection-name :read)
+        fields (get-fields-by-rule rule :my)]
+    (if (pwd/check-password password founded-user-password)
+      {:document (rep/find-user-by-id connection decoded-id fields)}
+      (let [derived-password (pwd/derive-password password)
+            to-update (merge founded-user {:password derived-password})
+            user (rep/update-password connection decoded-id to-update fields)]
+        {:document user}))))

@@ -20,3 +20,4 @@
 
 (defonce auth-header "authorization")
 (defonce default-status "active")
+(defonce default-empty-value "empty")
