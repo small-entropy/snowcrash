@@ -105,7 +105,6 @@
     (get-users-list-without-rule connection limit skip)
     (get-users-list-by-rule connection token limit skip)))
 
-
 (defn get-user
   "Function for get user"
   ([connection user-id]
@@ -119,14 +118,43 @@
          user (rep/find-user-by-id connection user-id fields)]
      {:document user :decoded-user founded-user})))
 
+(defn get-user-profile
+  "Function for get user profile"
+  [connection user-id]
+  (let [{document :document} (get-user connection user-id)
+        {login :login
+         id :_id
+         profile :profile} document]
+    {:document profile :user {:login login :_id id}}))
+
+(defn- filter-property
+  "Private function for find user property from collection"
+  [profile user-id property-id]
+  (let [property (filter (fn [current-property]
+                           (= property-id (str (get current-property :_id nil)))) profile)]
+    (if (= (count property) 0)
+      (throw (ex-info
+               "Can not find user property"
+               {:alias "not-found"
+                :info {:user-id user-id
+                       :property-id property-id
+                       :profile profile}}))
+      (first property))))
+
+(defn get-user-profile-property
+  "Function for get user profile properties"
+  [connection user-id property-id]
+  (let [{document :document user :user} (get-user-profile connection user-id)
+        property (filter-property document user-id property-id)]
+    {:document property :user user}))
+
 (defn logout-user
   "Function for logout user"
   [token]
   (let [token (jwt/decode token)
         id (get token :id default-empty-value)
         login (get token :login default-empty-value)]
-    {:document {:id id :login login}
-     :token default-empty-value}))
+    {:document {:_id id :login login} :token default-empty-value}))
 
 (defn change-user-password
   "Function for change user password"

@@ -92,3 +92,35 @@
                                   (service/get-user connection user-id decoded-id is-owner))]
        (assoc context :response (ok guid document {:token (not-send token)
                                                    :request guid}))))})
+
+;; Interceptor for get user profile
+(def profile-user-interceptor
+  {:name ::profile-user-interceptor
+   :enter
+   (fn [context]
+     (let [{connection :connection
+            request :request
+            guid :guid
+            token :token} context
+           path-params (get request :path-params nil)
+           user-id (get path-params :user-id nil)
+           {document :document user :user} (service/get-user-profile connection user-id)]
+       (assoc context :response (ok guid document {:token (not-send token)
+                                                   :request guid
+                                                   :user user}))))})
+
+;; Interceptor for get user profile property
+(def profile-user-property-interceptor
+  {:name ::profile-user-property-interceptor
+   :enter
+   (fn [context]
+     (let [{connection :connection
+            request :request
+            guid :guid
+            token :token} context
+           path-params (get request :path-params nil)
+           {user-id :user-id property-id :property-id} path-params
+           {document :document user :user} (service/get-user-profile-property connection user-id property-id)]
+       (assoc context :response (ok guid document {:token (not-send token)
+                                                   :request guid
+                                                   :user user}))))})
