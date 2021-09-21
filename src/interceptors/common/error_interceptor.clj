@@ -21,6 +21,7 @@
     "not-send-password" 401
     "not-send-some-data" 401
     "not-found" 404
+    "is-exist" 409
     :else 502))
 
 (def errors

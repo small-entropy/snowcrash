@@ -125,27 +125,27 @@
         {login :login
          id :_id
          profile :profile} document]
-    {:document profile :user {:login login :_id id}}))
+    {:documents profile :user {:login login :_id id}}))
 
 (defn- filter-property
   "Private function for find user property from collection"
   [profile user-id property-id]
-  (let [property (filter (fn [current-property]
+  (let [founded (filter (fn [current-property]
                            (= property-id (str (get current-property :_id nil)))) profile)]
-    (if (= (count property) 0)
+    (if (= (count founded) 0)
       (throw (ex-info
                "Can not find user property"
                {:alias "not-found"
                 :info {:user-id user-id
                        :property-id property-id
                        :profile profile}}))
-      (first property))))
+      (first founded))))
 
 (defn get-user-profile-property
   "Function for get user profile properties"
   [connection user-id property-id]
-  (let [{document :document user :user} (get-user-profile connection user-id)
-        property (filter-property document user-id property-id)]
+  (let [{documents :documents user :user} (get-user-profile connection user-id)
+        property (filter-property documents user-id property-id)]
     {:document property :user user}))
 
 (defn logout-user
@@ -170,3 +170,32 @@
             to-update (merge founded-user {:password derived-password})
             user (rep/update-password connection decoded-id to-update fields)]
         {:document user}))))
+
+(defn- filter-property-by-key
+  "Private function for filter profile properties by key"
+  [profile key]
+  (let [founded (filter (fn [current-property]
+                          (= key (get current-property :key nil))) profile)]
+    (if (= (count founded) 0)
+      false
+      true)))
+
+(defn create-user-profile-property
+  "Function for create user profile property for user"
+  ([connection user-id key value]
+   (let [user (rep/find-user-by-id connection user-id [])
+         profile (get user :profile nil)
+         is-exist (filter-property-by-key profile key)]
+     (if (true? is-exist)
+       (throw (ex-info
+                "Profile property already exist"
+                {:alias "is-exist"
+                 :info {:key key
+                        :value value
+                        :profile profile}}))
+       (let [{_id :_id
+              login :login
+              updated-profile :profile} (rep/create-profile-property connection user key value [])]
+         {:documents updated-profile :user {:_id _id
+                                            :login login}}))))
+  ([connection user-id decoded-id key value] nil))

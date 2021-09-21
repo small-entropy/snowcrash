@@ -17,3 +17,8 @@
    {:_id (ObjectId.) :key "lastName" :value nil}
    {:_id (ObjectId.) :key "patronymic" :value nil}
    ])
+
+(defn create
+  "Function for create profile property by key & value"
+  [key value]
+  {:_id (ObjectId.) :key key :value value})

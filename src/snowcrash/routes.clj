@@ -1,11 +1,11 @@
 (ns snowcrash.routes
-  (:require [io.pedestal.http.route :as route]
+  (:require [io.pedestal.http.route :as r]
             [io.pedestal.http.body-params :as body-params]
             [interceptors.common.database-interceptor :as dbi]
             [interceptors.common.attach-guid :as aguidi]
-            [interceptors.users.users-interceptors :as users-interceptors]
-            [interceptors.common.error-interceptor :as errors]
-            [interceptors.common.attach-user-data :as attach-user-data]
+            [interceptors.users.users-interceptors :as ui]
+            [interceptors.common.error-interceptor :as ei]
+            [interceptors.users.attach-user :as au]
             [utils.constants :refer :all]))
 
 
@@ -16,62 +16,70 @@
    (fn
      [database-component]
      (let [database (:database database-component)]
-       (route/expand-routes
+       (r/expand-routes
          #{["/api/v1/user/register"
-            :post [errors/errors
+            :post [ei/errors
                    aguidi/attach-guid
                    (dbi/db-interceptor database)
                    (body-params/body-params)
-                   users-interceptors/register-user-interceptor]
+                   ui/register-user-interceptor]
             :route-name
             :register-user]
            ["/api/v1/user/login"
-            :post [errors/errors
+            :post [ei/errors
                    aguidi/attach-guid
                    (dbi/db-interceptor database)
                    (body-params/body-params)
-                   users-interceptors/login-user-interceptor]
+                   ui/login-user-interceptor]
             :route-name :login-user]
            ["/api/v1/user/autologin"
-            :get [errors/errors
+            :get [ei/errors
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
-                  users-interceptors/autologin-user-interceptor]
+                  ui/autologin-user-interceptor]
             :route-name :autologin-user]
            ["/api/v1/user/logout"
-            :post [errors/errors
+            :post [ei/errors
                    aguidi/attach-guid
-                   users-interceptors/logout-user-interceptor]
+                   ui/logout-user-interceptor]
             :route-name :logout-user]
            ["/api/v1/user/change-password"
-            :post [errors/errors
+            :post [ei/errors
                    aguidi/attach-guid
                    (dbi/db-interceptor database)
                    (body-params/body-params)
-                   users-interceptors/change-user-password-interceptor]
+                   ui/change-user-password-interceptor]
             :route-name :change-user-password]
            ["/api/v1/users"
-            :get [errors/errors
+            :get [ei/errors
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
-                  users-interceptors/list-users-interceptor]
+                  ui/list-users-interceptor]
             :route-name :list-users]
            ["/api/v1/users/:user-id"
-           :get [errors/errors
+           :get [ei/errors
                  aguidi/attach-guid
-                 attach-user-data/attach-user-data
+                 au/attach-user-data
                  (dbi/db-interceptor database)
-                 users-interceptors/entity-users-interceptor]
+                 ui/entity-users-interceptor]
            :route-name :entity-user]
            ["/api/v1/users/:user-id/profile"
-            :get [errors/errors
+            :get [ei/errors
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
-                  users-interceptors/profile-user-interceptor]
+                  ui/profile-user-interceptor]
             :route-name :profile-user-interceptor]
            ["/api/v1/users/:user-id/profile/:property-id"
-            :get [errors/errors
+            :get [ei/errors
                   aguidi/attach-guid
                   (dbi/db-interceptor database)
-                  users-interceptors/profile-user-property-interceptor]
-            :route-name :profile-user-property]}))))
+                  ui/profile-user-property-interceptor]
+            :route-name :profile-user-property]
+           ["/api/v1/users/:user-id/profile"
+            :post [ei/errors
+                   aguidi/attach-guid
+                   (dbi/db-interceptor database)
+                   (body-params/body-params)
+                   au/attach-user-data
+                   ui/create-profile-user-property-interceptor]
+            :route-name :create-profile-user-property]}))))

@@ -1,6 +1,7 @@
 (ns database.single.users-repository
   (:require
     [database.common.repository :as repository]
+    [database.nested.profile :as p]
     [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
 
@@ -73,6 +74,16 @@
   [connection decoded-id to-update fields]
   (repository/update-document connection users-collection-name decoded-id to-update)
   (find-user-by-id connection decoded-id fields))
+
+(defn create-profile-property
+  "Function for create user profile property by key & value"
+  [connection user key value fields]
+  (let [user-id (get user :_id nil)
+        new-property (p/create key value)
+        new-profile {:profile (conj (get user :profile []) new-property)}
+        to-update (merge user new-profile)]
+    (repository/update-document connection users-collection-name user-id to-update)
+    (find-user-by-id connection user-id fields)))
 
 (defn get-total
   [connection]

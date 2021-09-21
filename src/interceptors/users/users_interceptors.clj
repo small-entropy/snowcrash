@@ -100,12 +100,12 @@
    (fn [context]
      (let [{connection :connection
             request :request
-            guid :guid
-            token :token} context
+            guid :guid} context
+           {header-token auth-header} (get request :headers nil)
            path-params (get request :path-params nil)
            user-id (get path-params :user-id nil)
-           {document :document user :user} (service/get-user-profile connection user-id)]
-       (assoc context :response (ok guid document {:token (not-send token)
+           {documents :documents user :user} (service/get-user-profile connection user-id)]
+       (assoc context :response (ok guid documents {:token (not-send header-token)
                                                    :request guid
                                                    :user user}))))})
 
@@ -116,11 +116,32 @@
    (fn [context]
      (let [{connection :connection
             request :request
-            guid :guid
-            token :token} context
+            guid :guid} context
+           {header-token auth-header} (get request :headers nil)
            path-params (get request :path-params nil)
            {user-id :user-id property-id :property-id} path-params
            {document :document user :user} (service/get-user-profile-property connection user-id property-id)]
-       (assoc context :response (ok guid document {:token (not-send token)
+       (assoc context :response (ok guid document {:token (not-send header-token)
                                                    :request guid
                                                    :user user}))))})
+
+;; Interceptor for create user profile property
+(def create-profile-user-property-interceptor
+  {:name ::create-profile-user-property-interceptor
+   :enter
+   (fn [context]
+     (let [{connection :connection
+            request :request
+            guid :guid
+            token :token
+            is-owner :is-owner
+            user-id :user-id
+            decoded-id :decoded-id} context
+           {key :key value :value} (get request :json-params nil)
+           {documents :documents
+            user :user} (if (true? is-owner)
+                       (service/create-user-profile-property connection user-id key value)
+                       (service/create-user-profile-property connection user-id decoded-id key value))]
+       (assoc context :response (ok guid documents {:token token
+                                                    :request guid
+                                                    :user user}))))})
