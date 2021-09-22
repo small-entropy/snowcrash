@@ -22,6 +22,7 @@
     "not-send-some-data" 401
     "not-found" 404
     "is-exist" 409
+    "has-not-access" 406
     :else 502))
 
 (def errors

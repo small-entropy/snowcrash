@@ -190,12 +190,22 @@
        (throw (ex-info
                 "Profile property already exist"
                 {:alias "is-exist"
-                 :info {:key key
-                        :value value
-                        :profile profile}}))
+                 :info {:key key :value value :profile profile}}))
        (let [{_id :_id
               login :login
               updated-profile :profile} (rep/create-profile-property connection user key value [])]
-         {:documents updated-profile :user {:_id _id
-                                            :login login}}))))
-  ([connection user-id decoded-id key value] nil))
+         {:documents updated-profile :user {:_id _id :login login}}))))
+  ([connection user-id decoded-id key value]
+   (let [dec-user (rep/find-user-by-id connection decoded-id [])
+         dec-rule (ur/get-user-rule dec-user users-collection-name :create)
+         dec-right (get dec-rule my-global false)]
+     (if (true? dec-right)
+       (let [user (rep/find-user-by-id connection user-id [])
+             {_id :_id
+              login :login
+              updated-profile :profile} (rep/create-profile-property connection user key value [])]
+         {:documents updated-profile :user {:_id _id :login login}})
+       (throw (ex-info
+                "Hasn't access to create other profile property"
+                {:alias "has-not-access"
+                 :info {:user-id user-id :decoded-id decoded-id :key key :value value}}))))))
