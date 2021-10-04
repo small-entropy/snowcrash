@@ -75,6 +75,12 @@
   (repository/update-document connection users-collection-name decoded-id to-update)
   (find-user-by-id connection decoded-id fields))
 
+(defn update-profile-property
+  "Function for update profile property"
+  [connection user-id to-update fields]
+  (repository/update-document connection users-collection-name user-id to-update)
+  (find-user-by-id connection user-id fields))
+
 (defn create-profile-property
   "Function for create user profile property by key & value"
   [connection user key value fields]

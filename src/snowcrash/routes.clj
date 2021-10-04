@@ -82,4 +82,12 @@
                    (body-params/body-params)
                    au/attach-user-data
                    ui/create-profile-user-property-interceptor]
-            :route-name :create-profile-user-property]}))))
+            :route-name :create-profile-user-property]
+           ["/api/v1/users/:user-id/profile/:property-id"
+            :put [ei/errors
+                   aguidi/attach-guid
+                   (dbi/db-interceptor database)
+                   (body-params/body-params)
+                   au/attach-user-data
+                   ui/update-profile-user-property-interceptor]
+            :route-name :update-profile-user-property]}))))

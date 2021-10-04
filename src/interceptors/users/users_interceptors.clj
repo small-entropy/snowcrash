@@ -145,3 +145,26 @@
        (assoc context :response (ok guid documents {:token token
                                                     :request guid
                                                     :user user}))))})
+
+;; Interceptor for update user profile property
+(def update-profile-user-property-interceptor
+  {:name ::update-profile-user-property-interceptor
+   :enter
+   (fn [context]
+     (let [{connection :connection
+            request :request
+            guid :guid
+            token :token
+            is-owner :is-owner
+            user-id :user-id
+            decoded-id :decoded-id} context
+           path-params (get request :path-params nil)
+           {property-id :property-id} path-params
+           {key :key value :value} (get request :json-params nil)
+           {documents :documents
+            user :user} (if (true? is-owner)
+                                     (service/update-user-profile-property connection property-id user-id decoded-id key value)
+                                     (service/update-user-profile-property connection property-id user-id key value))]
+       (assoc context :response (ok guid documents {:token token
+                                                    :request guid
+                                                    :user user}))))})

@@ -172,7 +172,7 @@
         {:document user}))))
 
 (defn- filter-property-by-key
-  "Private function for filter profile properties by key"
+  "Private function for check exist profile property by key"
   [profile key]
   (let [founded (filter (fn [current-property]
                           (= key (get current-property :key nil))) profile)]
@@ -208,4 +208,45 @@
        (throw (ex-info
                 "Hasn't access to create other profile property"
                 {:alias "has-not-access"
-                 :info {:user-id user-id :decoded-id decoded-id :key key :value value}}))))))
+                 :info {:user-id user-id
+                        :decoded-id decoded-id
+                        :key key
+                        :value value}}))))))
+
+(defn- filter-property-by-id
+  "Private function for check exist profile property by id"
+  [profile id]
+  (let [founded (filter (fn [current-property]
+                          (= id (str (get current-property :_id nil)))) profile)]
+    (if (= (count founded) 0)
+      false
+      true)))
+
+(defn- update-profile-list
+  "Private function for update profile list"
+  [profile property-id key value]
+  (map (fn [item]
+         (if (= (str (get item :_id nil)) property-id)
+           {:_id (get item :_id nil) :key key :value value} item)) profile))
+
+(defn update-user-profile-property
+  "Function for update user property"
+  ([connection property-id user-id key value]
+   (let [founded-user (rep/find-user-by-id connection user-id [])
+         profile (get founded-user :profile nil)
+         is-exist (filter-property-by-id profile property-id)]
+     (if (true? is-exist)
+       (let [updated-profile (update-profile-list profile property-id key value)
+             to-update (merge founded-user {:profile updated-profile})
+             updated-user (rep/update-profile-property connection user-id to-update [])]
+         {:documents (get updated-user :profile nil)
+          :user {:_id (get updated-user :_id nil)
+                 :login (get updated-user :login)}})
+       (throw (ex-info
+                "Profile property not exist"
+                {:alias "not-found"
+                 :info {:user-id user-id
+                        :property-id property-id
+                        :key key
+                        :value value}})))))
+  ([connection property-id user-id id key value] nil))
