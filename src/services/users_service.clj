@@ -171,7 +171,7 @@
             user (rep/update-password connection decoded-id to-update fields)]
         {:document user}))))
 
-(defn- filter-property-by-key
+(defn- exist-in-profile-by-key?
   "Private function for check exist profile property by key"
   [profile key]
   (let [founded (filter (fn [current-property]
@@ -185,7 +185,7 @@
   ([connection user-id key value]
    (let [user (rep/find-user-by-id connection user-id [])
          profile (get user :profile nil)
-         is-exist (filter-property-by-key profile key)]
+         is-exist (exist-in-profile-by-key? profile key)]
      (if (true? is-exist)
        (throw (ex-info
                 "Profile property already exist"
@@ -200,11 +200,7 @@
          dec-rule (ur/get-user-rule dec-user users-collection-name :create)
          dec-right (get dec-rule my-global false)]
      (if (true? dec-right)
-       (let [user (rep/find-user-by-id connection user-id [])
-             {_id :_id
-              login :login
-              updated-profile :profile} (rep/create-profile-property connection user key value [])]
-         {:documents updated-profile :user {:_id _id :login login}})
+       (create-user-profile-property connection user-id key value)
        (throw (ex-info
                 "Hasn't access to create other profile property"
                 {:alias "has-not-access"
@@ -213,7 +209,7 @@
                         :key key
                         :value value}}))))))
 
-(defn- filter-property-by-id
+(defn- exist-in-profile-by-id?
   "Private function for check exist profile property by id"
   [profile id]
   (let [founded (filter (fn [current-property]
@@ -234,7 +230,7 @@
   ([connection property-id user-id key value]
    (let [founded-user (rep/find-user-by-id connection user-id [])
          profile (get founded-user :profile nil)
-         is-exist (filter-property-by-id profile property-id)]
+         is-exist (exist-in-profile-by-id? profile property-id)]
      (if (true? is-exist)
        (let [updated-profile (update-profile-list profile property-id key value)
              to-update (merge founded-user {:profile updated-profile})
@@ -249,4 +245,17 @@
                         :property-id property-id
                         :key key
                         :value value}})))))
-  ([connection property-id user-id id key value] nil))
+  ([connection property-id user-id decoded-id key value]
+   (let [dec-user (rep/find-user-by-id connection decoded-id [])
+         dec-rule (ur/get-user-rule dec-user users-collection-name :update)
+         dec-right (get dec-rule my-global false)]
+     (if (true? dec-right)
+       (update-user-profile-property connection property-id user-id key value)
+       (throw (ex-info
+                "Hasn't access to update other profile property"
+                {:alias "has-not-access"
+                 :info {:user-id user-id
+                        :decoded-id decoded-id
+                        :property-id property-id
+                        :key key
+                        :value value}}))))))

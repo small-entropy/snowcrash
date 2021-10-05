@@ -163,8 +163,8 @@
            {key :key value :value} (get request :json-params nil)
            {documents :documents
             user :user} (if (true? is-owner)
-                                     (service/update-user-profile-property connection property-id user-id decoded-id key value)
-                                     (service/update-user-profile-property connection property-id user-id key value))]
+                                     (service/update-user-profile-property connection property-id user-id key value)
+                                     (service/update-user-profile-property connection property-id user-id decoded-id key value))]
        (assoc context :response (ok guid documents {:token token
                                                     :request guid
                                                     :user user}))))})
