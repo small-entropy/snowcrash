@@ -1,11 +1,11 @@
 (ns snowcrash.routes
   (:require [io.pedestal.http.route :as r]
             [io.pedestal.http.body-params :as body-params]
-            [interceptors.common.database-interceptor :as dbi]
-            [interceptors.common.attach-guid :as aguidi]
-            [interceptors.users.users-interceptors :as ui]
-            [interceptors.common.error-interceptor :as ei]
-            [interceptors.users.attach-user :as au]
+            [interceptors.common.attach-db :refer :all]
+            [interceptors.common.attach-guid :refer :all]
+            [interceptors.users.users-interceptors :refer :all]
+            [interceptors.common.error-interceptor :refer :all]
+            [interceptors.users.attach-user :refer :all]
             [utils.constants :refer :all]))
 
 
@@ -18,84 +18,83 @@
      (let [database (:database database-component)]
        (r/expand-routes
          #{["/api/v1/user/register"
-            :post [ei/errors
-                   aguidi/attach-guid
-                   (dbi/db-interceptor database)
+            :post [errors
+                   attach-guid
+                   (attach-db database)
                    (body-params/body-params)
-                   ui/register-user-interceptor]
-            :route-name
-            :register-user]
+                   register-user-interceptor]
+            :route-name :register-user]
            ["/api/v1/user/login"
-            :post [ei/errors
-                   aguidi/attach-guid
-                   (dbi/db-interceptor database)
+            :post [errors
+                   attach-guid
+                   (attach-db database)
                    (body-params/body-params)
-                   ui/login-user-interceptor]
+                   login-user-interceptor]
             :route-name :login-user]
            ["/api/v1/user/autologin"
-            :get [ei/errors
-                  aguidi/attach-guid
-                  (dbi/db-interceptor database)
-                  ui/autologin-user-interceptor]
+            :get [errors
+                  attach-guid
+                  (attach-db database)
+                  autologin-user-interceptor]
             :route-name :autologin-user]
            ["/api/v1/user/logout"
-            :post [ei/errors
-                   aguidi/attach-guid
-                   ui/logout-user-interceptor]
+            :post [errors
+                   attach-guid
+                   logout-user-interceptor]
             :route-name :logout-user]
            ["/api/v1/user/change-password"
-            :post [ei/errors
-                   aguidi/attach-guid
-                   (dbi/db-interceptor database)
+            :post [errors
+                   attach-guid
+                   (attach-db database)
                    (body-params/body-params)
-                   ui/change-user-password-interceptor]
+                   change-user-password-interceptor]
             :route-name :change-user-password]
            ["/api/v1/users"
-            :get [ei/errors
-                  aguidi/attach-guid
-                  (dbi/db-interceptor database)
-                  ui/list-users-interceptor]
+            :get [errors
+                  attach-guid
+                  (attach-db database)
+                  list-users-interceptor]
             :route-name :list-users]
            ["/api/v1/users/:user-id"
-           :get [ei/errors
-                 aguidi/attach-guid
-                 au/attach-user-data
-                 (dbi/db-interceptor database)
-                 ui/entity-users-interceptor]
+           :get [errors
+                 attach-guid
+                 attach-user-data
+                 (attach-db database)
+                 entity-users-interceptor]
            :route-name :entity-user]
            ["/api/v1/users/:user-id/profile"
-            :get [ei/errors
-                  aguidi/attach-guid
-                  (dbi/db-interceptor database)
-                  ui/profile-user-interceptor]
+            :get [errors
+                  attach-guid
+                  (attach-db database)
+                  profile-user-interceptor]
             :route-name :profile-user-interceptor]
            ["/api/v1/users/:user-id/profile/:property-id"
-            :get [ei/errors
-                  aguidi/attach-guid
-                  (dbi/db-interceptor database)
-                  ui/profile-user-property-interceptor]
+            :get [errors
+                  attach-guid
+                  (attach-db database)
+                  profile-user-property-interceptor]
             :route-name :profile-user-property]
            ["/api/v1/users/:user-id/profile"
-            :post [ei/errors
-                   aguidi/attach-guid
-                   (dbi/db-interceptor database)
+            :post [errors
+                   attach-guid
+                   (attach-db database)
                    (body-params/body-params)
-                   au/attach-user-data
-                   ui/create-profile-user-property-interceptor]
+                   attach-user-data
+                   create-profile-user-property-interceptor]
             :route-name :create-profile-user-property]
            ["/api/v1/users/:user-id/profile/:property-id"
-            :put [ei/errors
-                   aguidi/attach-guid
-                   (dbi/db-interceptor database)
+            :put [errors
+                   attach-guid
+                   (attach-db database)
                    (body-params/body-params)
-                   au/attach-user-data
-                   ui/update-profile-user-property-interceptor]
+                   attach-user-data
+                   update-profile-user-property-interceptor]
             :route-name :update-profile-user-property]
            ["/api/v1/users/:user-id/profile/:property-id"
-            :delete [ei/errors
-                  aguidi/attach-guid
-                  (dbi/db-interceptor database)
-                  (body-params/body-params)
-                  au/attach-user-data
-                  ui/delete-profile-user-property-interceptor]
+            :delete [errors
+                     attach-guid
+                     (attach-db database)
+                     (body-params/body-params)
+                     attach-user-data
+                     delete-profile-user-property-interceptor]
             :route-name :delete-profile-user-property]}))))

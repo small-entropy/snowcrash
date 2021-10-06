@@ -1,6 +1,6 @@
-(ns interceptors.common.database-interceptor)
+(ns interceptors.common.attach-db)
 
-(defn db-interceptor
+(defn attach-db
   [connection]
   {:name ::database-interceptor
    :enter
