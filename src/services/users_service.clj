@@ -259,3 +259,41 @@
                         :property-id property-id
                         :key key
                         :value value}}))))))
+
+(defn- delete-from-profile-list
+  "Private function for return new list of profile properties (remove
+  property with property-id)"
+  [profile property-id]
+  (filter (fn [current-property]
+             (not= property-id (str (get current-property :_id nil)))) profile))
+
+(defn delete-user-profile-property
+  "Function for delete user profile property"
+  ([connection user-id property-id]
+   (let [founded-user (rep/find-user-by-id connection user-id [])
+         profile (get founded-user :profile nil)
+         is-exist (exist-in-profile-by-id? profile property-id)]
+     (if (true? is-exist)
+       (let [updated-profile (delete-from-profile-list profile property-id)
+             to-update (merge founded-user {:profile updated-profile})
+             updated-user (rep/update-profile-property connection user-id to-update [])]
+         {:documents (get updated-user :profile nil)
+          :user {:_id (get updated-user :_id nil)
+                 :login (get updated-user :login nil)}})
+       (throw (ex-info
+                "Profile property not exist"
+                {:alias "not-found"
+                 :info {:user-id user-id
+                        :property-id property-id}})))))
+  ([connection user-id decoded-id property-id]
+   (let [dec-user (rep/find-user-by-id connection decoded-id [])
+         dec-rule (ur/get-user-rule dec-user users-collection-name :delete)
+         dec-right (get dec-rule my-global false)]
+     (if (true? dec-right)
+       (delete-user-profile-property connection user-id property-id)
+       (throw (ex-info
+                "Hasn't access to delete other profile property"
+                {:alias "has-not-access"
+                 :info {:user-id user-id
+                        :decoded-id decoded-id
+                        :property-id property-id}}))))))

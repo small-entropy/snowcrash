@@ -168,3 +168,24 @@
        (assoc context :response (ok guid documents {:token token
                                                     :request guid
                                                     :user user}))))})
+
+;; Interceptor for delete user profile property
+(def delete-profile-user-property-interceptor
+  {:name ::delete-profile-user-property-interceptor
+   :enter
+   (fn [context]
+     (let [{connection :connection
+            request :request
+            guid :guid
+            token :token
+            is-owner :is-owner
+            user-id :user-id
+            decoded-id :decoded-id} context
+           {property-id :property-id} (get request :path-params nil)
+           {documents :documents
+            user :user} (if (true? is-owner)
+                                     (service/delete-user-profile-property connection user-id property-id)
+                                     (service/delete-user-profile-property connection user-id decoded-id property-id))]
+       (assoc context :response (ok guid documents {:token token
+                                                    :request guid
+                                                    :user user}))))})
