@@ -5,29 +5,20 @@
     [database.nested.profile :as prof]
     [database.nested.property :as prop]
     [database.nested.right :as right]
+    [utils.check-access :as access]
     [utils.jwt :as jwt]
     [utils.rights :as ur]
     [utils.constants :refer :all]
     [utils.helpers :refer :all])
   (:import (org.bson.types ObjectId)))
 
-(defn get-fields-by-rule
-  "Get list of fields by rule and owner"
+(defn- get-fields-by-rule
+  "Private proxy function for get document fields by rule"
   [rule owner]
   (let [public-fields ["_id" "login" "profile"]
         private-fields (into [] (concat public-fields ["properties"]))
         global-fields (into [] (concat private-fields ["tokens" "rights" "status"]))]
-    (if (or (nil? rule) (nil? owner))
-      public-fields
-      (if (= owner :my)
-        (cond
-          (true? (get rule my-global false)) global-fields
-          (true? (get rule my-private false)) private-fields
-          :else public-fields)
-        (cond
-          (true? (get rule other-global false)) global-fields
-          (true? (get rule other-private false)) private-fields
-          :else public-fields)))))
+    (access/get-fields-by-rule rule owner public-fields private-fields global-fields)))
 
 (defn register-user
   "Function for register new user"
@@ -196,10 +187,7 @@
               updated-profile :profile} (rep/create-profile-property connection user key value [])]
          {:documents updated-profile :user {:_id _id :login login}}))))
   ([connection user-id decoded-id key value]
-   (let [dec-user (rep/find-user-by-id connection decoded-id [])
-         dec-rule (ur/get-user-rule dec-user users-collection-name :create)
-         dec-right (get dec-rule my-global false)]
-     (if (true? dec-right)
+     (if (access/check-global-access connection users-collection-name decoded-id :create)
        (create-user-profile-property connection user-id key value)
        (throw (ex-info
                 "Hasn't access to create other profile property"
@@ -207,7 +195,7 @@
                  :info {:user-id user-id
                         :decoded-id decoded-id
                         :key key
-                        :value value}}))))))
+                        :value value}})))))
 
 (defn- exist-in-profile-by-id?
   "Private function for check exist profile property by id"
@@ -246,10 +234,7 @@
                         :key key
                         :value value}})))))
   ([connection property-id user-id decoded-id key value]
-   (let [dec-user (rep/find-user-by-id connection decoded-id [])
-         dec-rule (ur/get-user-rule dec-user users-collection-name :update)
-         dec-right (get dec-rule my-global false)]
-     (if (true? dec-right)
+     (if (access/check-global-access connection users-collection-name decoded-id :update)
        (update-user-profile-property connection property-id user-id key value)
        (throw (ex-info
                 "Hasn't access to update other profile property"
@@ -258,7 +243,7 @@
                         :decoded-id decoded-id
                         :property-id property-id
                         :key key
-                        :value value}}))))))
+                        :value value}})))))
 
 (defn- delete-from-profile-list
   "Private function for return new list of profile properties (remove
@@ -286,14 +271,11 @@
                  :info {:user-id user-id
                         :property-id property-id}})))))
   ([connection user-id decoded-id property-id]
-   (let [dec-user (rep/find-user-by-id connection decoded-id [])
-         dec-rule (ur/get-user-rule dec-user users-collection-name :delete)
-         dec-right (get dec-rule my-global false)]
-     (if (true? dec-right)
+     (if (access/check-global-access connection users-collection-name decoded-id :delete)
        (delete-user-profile-property connection user-id property-id)
        (throw (ex-info
                 "Hasn't access to delete other profile property"
                 {:alias "has-not-access"
                  :info {:user-id user-id
                         :decoded-id decoded-id
-                        :property-id property-id}}))))))
+                        :property-id property-id}})))))
