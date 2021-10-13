@@ -62,12 +62,26 @@
                  (attach-db database)
                  entity-users-interceptor]
            :route-name :entity-user]
+           ["/api/v1/users/:user-id/properties"
+            :get [errors
+                  attach-guid
+                  (attach-db database)
+                  attach-user-data
+                  properties-user-interceptor]
+            :route-name :properties-user]
+           ["/api/v1/users/:user-id/properties/:property-id"
+            :get [errors
+                  attach-guid
+                  (attach-db database)
+                  attach-user-data
+                  properties-user-property-interceptor]
+            :route-name :properties-user-property]
            ["/api/v1/users/:user-id/profile"
             :get [errors
                   attach-guid
                   (attach-db database)
                   profile-user-interceptor]
-            :route-name :profile-user-interceptor]
+            :route-name :profile-user]
            ["/api/v1/users/:user-id/profile/:property-id"
             :get [errors
                   attach-guid

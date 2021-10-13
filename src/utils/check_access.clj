@@ -28,10 +28,30 @@
          rule (r/get-user-rule user collection-name action-key)]
      (get rule rule-key default-value))))
 
-(defn check-global-access
-  "Function for check global access"
+(defn my-global?
+  "Function for check my global access"
   ([connection collection-name user-id action-key]
    (check-access connection collection-name user-id action-key my-global))
   ([connection collection-name user-id action-key default-value]
    (check-access connection collection-name user-id action-key my-global default-value)))
 
+(defn other-global?
+  "Function for check global access"
+  ([connection collection-name user-id action-key]
+   (check-access connection collection-name user-id action-key other-global))
+  ([connection collection-name user-id action-key default-value]
+   (check-access connection collection-name user-id action-key other-global default-value)))
+
+(defn my-private?
+  "Function for check my private access"
+  ([connection collection-name user-id action-key]
+   (check-access connection collection-name user-id action-key my-private))
+  ([connection collection-name user-id action-key default-value]
+   (check-access connection collection-name user-id action-key my-private default-value)))
+
+(defn other-private?
+  "Function for check private access"
+  ([connection collection-name user-id action-key]
+   (check-access connection collection-name user-id action-key other-private))
+  ([connection collection-name user-id action-key default-value]
+   (check-access connection collection-name user-id action-key other-private default-value)))

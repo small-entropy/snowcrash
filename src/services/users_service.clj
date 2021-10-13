@@ -13,7 +13,6 @@
   (:import (org.bson.types ObjectId)))
 
 (defn- get-fields-by-rule
-  "Private proxy function for get document fields by rule"
   [rule owner]
   (let [public-fields ["_id" "login" "profile"]
         private-fields (into [] (concat public-fields ["properties"]))
@@ -72,7 +71,6 @@
        {:document user :token token}))))
 
 (defn- get-users-list-by-rule
-  "Private function for get users list with authorization"
   [connection token limit skip]
   (let [oid (jwt/decode-and-get token :id)
         founded-user (rep/find-user-by-id connection oid [])
@@ -82,7 +80,6 @@
     {:documents users :token token :total total }))
 
 (defn- get-users-list-without-rule
-  "Private function for get users list without authorization"
   [connection limit skip]
   (let [fields (get-fields-by-rule nil nil)
         users (rep/get-users-list connection limit skip fields)
@@ -119,13 +116,17 @@
     {:documents profile :user {:login login :_id id}}))
 
 (defn- filter-property
+  [values property-id]
+  (filter (fn [current-property]
+            (= property-id (str (get current-property :_id nil)))) values))
+
+(defn- filter-profile-property
   "Private function for find user property from collection"
   [profile user-id property-id]
-  (let [founded (filter (fn [current-property]
-                           (= property-id (str (get current-property :_id nil)))) profile)]
+  (let [founded (filter-property profile property-id)]
     (if (= (count founded) 0)
       (throw (ex-info
-               "Can not find user property"
+               "Can not find user profile property"
                {:alias "not-found"
                 :info {:user-id user-id
                        :property-id property-id
@@ -136,7 +137,7 @@
   "Function for get user profile properties"
   [connection user-id property-id]
   (let [{documents :documents user :user} (get-user-profile connection user-id)
-        property (filter-property documents user-id property-id)]
+        property (filter-profile-property documents user-id property-id)]
     {:document property :user user}))
 
 (defn logout-user
@@ -163,7 +164,6 @@
         {:document user}))))
 
 (defn- exist-in-profile-by-key?
-  "Private function for check exist profile property by key"
   [profile key]
   (let [founded (filter (fn [current-property]
                           (= key (get current-property :key nil))) profile)]
@@ -187,7 +187,7 @@
               updated-profile :profile} (rep/create-profile-property connection user key value [])]
          {:documents updated-profile :user {:_id _id :login login}}))))
   ([connection user-id decoded-id key value]
-     (if (access/check-global-access connection users-collection-name decoded-id :create)
+     (if (access/other-global? connection users-collection-name decoded-id :create)
        (create-user-profile-property connection user-id key value)
        (throw (ex-info
                 "Hasn't access to create other profile property"
@@ -198,7 +198,6 @@
                         :value value}})))))
 
 (defn- exist-in-profile-by-id?
-  "Private function for check exist profile property by id"
   [profile id]
   (let [founded (filter (fn [current-property]
                           (= id (str (get current-property :_id nil)))) profile)]
@@ -207,7 +206,6 @@
       true)))
 
 (defn- update-profile-list
-  "Private function for update profile list"
   [profile property-id key value]
   (map (fn [item]
          (if (= (str (get item :_id nil)) property-id)
@@ -234,7 +232,7 @@
                         :key key
                         :value value}})))))
   ([connection property-id user-id decoded-id key value]
-     (if (access/check-global-access connection users-collection-name decoded-id :update)
+     (if (access/other-global? connection users-collection-name decoded-id :update)
        (update-user-profile-property connection property-id user-id key value)
        (throw (ex-info
                 "Hasn't access to update other profile property"
@@ -246,8 +244,6 @@
                         :value value}})))))
 
 (defn- delete-from-profile-list
-  "Private function for return new list of profile properties (remove
-  property with property-id)"
   [profile property-id]
   (filter (fn [current-property]
              (not= property-id (str (get current-property :_id nil)))) profile))
@@ -271,7 +267,7 @@
                  :info {:user-id user-id
                         :property-id property-id}})))))
   ([connection user-id decoded-id property-id]
-     (if (access/check-global-access connection users-collection-name decoded-id :delete)
+     (if (access/other-global? connection users-collection-name decoded-id :delete)
        (delete-user-profile-property connection user-id property-id)
        (throw (ex-info
                 "Hasn't access to delete other profile property"
@@ -279,3 +275,66 @@
                  :info {:user-id user-id
                         :decoded-id decoded-id
                         :property-id property-id}})))))
+
+(defn- get-user-properties-common
+  [connection user-id]
+  (let [founded-user (rep/find-user-by-id connection user-id [])
+        properties (get founded-user :properties nil)]
+    {:documents properties
+     :user {:_id (get founded-user :_id nil)
+            :login (get founded-user :login nil)}}))
+
+(defn get-user-properties
+  "Function for get user properties"
+  ([connection user-id]
+   (if (access/my-private? connection users-collection-name user-id :read)
+     (get-user-properties-common connection user-id)
+     (throw (ex-info
+              "Hasn't access to get user properties"
+              {:alias "has-not-access"
+               :info {:user-id user-id}}))))
+  ([connection user-id decoded-id]
+   (if (access/other-private? connection users-collection-name decoded-id :read)
+     (get-user-properties-common connection user-id)
+     (throw (ex-info
+              "Hasn't access to get other user properties"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id}})))))
+
+(defn- filter-properties-property
+  [properties user-id property-id]
+  (let [founded (filter-property properties property-id)]
+    (if (= (count founded) 0)
+      (throw (ex-info
+               "Can not find user property"
+               {:alias "not-found"
+                :info {:user-id user-id
+                       :property-id property-id
+                       :properties properties}}))
+      (first founded))))
+
+(defn- get-user-property-common
+  [connection user-id property-id]
+  (let [{documents :documents
+         user :user} (get-user-properties-common connection user-id)
+        property (filter-properties-property documents user-id property-id)]
+    {:document property :user user}))
+
+(defn get-user-property
+  "Function for get user property"
+  ([connection user-id property-id]
+   (if (access/my-private? connection users-collection-name user-id :read)
+     (get-user-property-common connection user-id property-id)
+     (throw (ex-info
+              "Hasn't access to get user property"
+              {:alias "has-not-access"
+               :info {:user-id user-id}}))))
+  ([connection user-id decoded-id property-id]
+   (if (access/other-private? connection users-collection-name decoded-id :read)
+     (get-user-property-common connection user-id property-id)
+     (throw (ex-info
+              "Hasn't access to get other user property"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id}})))))
