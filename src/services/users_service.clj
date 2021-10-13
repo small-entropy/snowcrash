@@ -278,7 +278,7 @@
 
 (defn- get-user-properties-common
   [connection user-id]
-  (let [founded-user (rep/find-user-by-id connection user-id [])
+  (let [founded-user (rep/find-user-by-id connection user-id ["_id" "login" "properties"])
         properties (get founded-user :properties nil)]
     {:documents properties
      :user {:_id (get founded-user :_id nil)
