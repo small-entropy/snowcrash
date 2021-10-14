@@ -160,16 +160,18 @@
       {:document (rep/find-user-by-id connection decoded-id fields)}
       (let [derived-password (pwd/derive-password password)
             to-update (merge founded-user {:password derived-password})
-            user (rep/update-password connection decoded-id to-update fields)]
+            user (rep/update connection decoded-id to-update fields)]
         {:document user}))))
+
+(defn- filter-collection-by-key
+  [collection key]
+  (filter (fn [current-property]
+            (= key (get current-property :key nil))) collection))
 
 (defn- exist-in-profile-by-key?
   [profile key]
-  (let [founded (filter (fn [current-property]
-                          (= key (get current-property :key nil))) profile)]
-    (if (= (count founded) 0)
-      false
-      true)))
+  (let [founded (filter-collection-by-key profile key)]
+    (if (= (count founded) 0) false true)))
 
 (defn create-user-profile-property
   "Function for create user profile property for user"
@@ -197,13 +199,15 @@
                         :key key
                         :value value}})))))
 
+(defn- filter-collection-by-id
+  [collection id]
+  (filter (fn [current-property]
+            (= id (str (get current-property :_id nil)))) collection))
+
 (defn- exist-in-profile-by-id?
   [profile id]
-  (let [founded (filter (fn [current-property]
-                          (= id (str (get current-property :_id nil)))) profile)]
-    (if (= (count founded) 0)
-      false
-      true)))
+  (let [founded (filter-collection-by-id profile id)]
+    (if (= (count founded) 0) false true)))
 
 (defn- update-profile-list
   [profile property-id key value]
@@ -220,7 +224,7 @@
      (if (true? is-exist)
        (let [updated-profile (update-profile-list profile property-id key value)
              to-update (merge founded-user {:profile updated-profile})
-             updated-user (rep/update-profile-property connection user-id to-update [])]
+             updated-user (rep/update connection user-id to-update [])]
          {:documents (get updated-user :profile nil)
           :user {:_id (get updated-user :_id nil)
                  :login (get updated-user :login)}})
@@ -243,10 +247,10 @@
                         :key key
                         :value value}})))))
 
-(defn- delete-from-profile-list
-  [profile property-id]
+(defn- delete-from-coll
+  [coll property-id]
   (filter (fn [current-property]
-             (not= property-id (str (get current-property :_id nil)))) profile))
+             (not= property-id (str (get current-property :_id nil)))) coll))
 
 (defn delete-user-profile-property
   "Function for delete user profile property"
@@ -255,9 +259,9 @@
          profile (get founded-user :profile nil)
          is-exist (exist-in-profile-by-id? profile property-id)]
      (if (true? is-exist)
-       (let [updated-profile (delete-from-profile-list profile property-id)
+       (let [updated-profile (delete-from-coll profile property-id)
              to-update (merge founded-user {:profile updated-profile})
-             updated-user (rep/update-profile-property connection user-id to-update [])]
+             updated-user (rep/update connection user-id to-update [])]
          {:documents (get updated-user :profile nil)
           :user {:_id (get updated-user :_id nil)
                  :login (get updated-user :login nil)}})
@@ -338,3 +342,77 @@
               {:alias "has-not-access"
                :info {:user-id user-id
                       :decoded-id decoded-id}})))))
+
+(defn- exist-in-properties-by-key?
+  [properties key]
+  (let [founded (filter-collection-by-key properties key)]
+    (if (= (count founded) 0) false true)))
+
+(defn create-user-property
+  "Function for create user property"
+  ([connection user-id key value]
+   (if (access/my-private? connection users-collection-name user-id :create)
+     (let [user (rep/find-user-by-id connection user-id [])
+           properties (get user :properties nil)
+           is-exist (exist-in-properties-by-key? properties key)]
+       (if (true? is-exist)
+         (throw (ex-info
+                  "User property already exist"
+                  {:alias "is-exist"
+                   :info {:user-id user-id
+                          :key key
+                          :value value
+                          :properties properties}}))
+         (let [{_id :id
+                login :login
+                updated-properties :properties} (rep/create-user-property connection user key value [])]
+           {:documents updated-properties :user {:_id _id :login login}})))
+     (throw (ex-info
+              "Can't create user property"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :key key
+                      :value value}}))))
+  ([connection user-id decoded-id key value]
+   (if (access/other-private? connection users-collection-name decoded-id :create)
+     (create-user-property connection user-id key value)
+     (throw (ex-info
+              "Can't create other user property"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id
+                      :key key
+                      :value value}})))))
+
+(defn- exist-in-properties-by-id?
+  [properties id]
+  (let [founded (filter-collection-by-id properties id)]
+    (if (= (count founded) 0) false true)))
+
+(defn delete-user-property
+  "Function for delete user property"
+  ([connection user-id property-id]
+   (let [founded-user (rep/find-user-by-id connection user-id [])
+         properties (get founded-user :properties nil)
+         is-exist (exist-in-properties-by-id? properties property-id)]
+     (if (true? is-exist)
+       (let [updated-properties (delete-from-coll properties property-id)
+             to-update (merge founded-user {:properties updated-properties})
+             updated-user (rep/update connection user-id to-update [])]
+         {:documents (get updated-user :properties nil)
+          :user {:_id (get updated-user :_id nil)
+                 :login (get updated-user :login nil)}})
+       (throw (ex-info
+                "User property not exist"
+                {:alias "not-found"
+                 :info {:user-id user-id
+                        :property-id property-id}})))))
+  ([connection user-id decoded-id property-id]
+   (if (access/other-global? connection users-collection-name decoded-id :delete)
+     (delete-user-property connection user-id property-id)
+     (throw (ex-info
+              "Hasn't access to delete other profile property"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id
+                      :property-id property-id}})))))

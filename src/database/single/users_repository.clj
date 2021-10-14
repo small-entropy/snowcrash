@@ -1,7 +1,8 @@
 (ns database.single.users-repository
   (:require
     [database.common.repository :as repository]
-    [database.nested.profile :as p]
+    [database.nested.profile :as prof]
+    [database.nested.property :as prop]
     [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
 
@@ -69,14 +70,8 @@
                        :skip skip}}))
       users)))
 
-(defn update-password
-  "Function for update user password"
-  [connection decoded-id to-update fields]
-  (repository/update-document connection users-collection-name decoded-id to-update)
-  (find-user-by-id connection decoded-id fields))
-
-(defn update-profile-property
-  "Function for update profile property"
+(defn update
+  "Function for update user document"
   [connection user-id to-update fields]
   (repository/update-document connection users-collection-name user-id to-update)
   (find-user-by-id connection user-id fields))
@@ -85,9 +80,19 @@
   "Function for create user profile property by key & value"
   [connection user key value fields]
   (let [user-id (get user :_id nil)
-        new-property (p/create key value)
+        new-property (prof/create key value)
         new-profile {:profile (conj (get user :profile []) new-property)}
         to-update (merge user new-profile)]
+    (repository/update-document connection users-collection-name user-id to-update)
+    (find-user-by-id connection user-id fields)))
+
+(defn create-user-property
+  "Function for create user property by key & value"
+  [connection user key value fields]
+  (let [user-id (get user :_id nil)
+        new-property (prop/create key value)
+        new-properties {:properties (conj (get user :properties []) new-property)}
+        to-update (merge user new-properties)]
     (repository/update-document connection users-collection-name user-id to-update)
     (find-user-by-id connection user-id fields)))
 

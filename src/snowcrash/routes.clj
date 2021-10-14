@@ -69,6 +69,14 @@
                   attach-user-data
                   properties-user-interceptor]
             :route-name :properties-user]
+           ["/api/v1/users/:user-id/properties"
+            :post [errors
+                   attach-guid
+                   (attach-db database)
+                   (body-params/body-params)
+                   attach-user-data
+                   create-user-property-interceptor]
+            :route-name :create-user-property]
            ["/api/v1/users/:user-id/properties/:property-id"
             :get [errors
                   attach-guid
@@ -76,6 +84,14 @@
                   attach-user-data
                   properties-user-property-interceptor]
             :route-name :properties-user-property]
+           ["/api/v1/users/:user-id/properties/:property-id"
+            :delete [errors
+                  attach-guid
+                  (attach-db database)
+                  (body-params/body-params)
+                  attach-user-data
+                  delete-user-property-interceptor]
+            :route-name :delete-user-property]
            ["/api/v1/users/:user-id/profile"
             :get [errors
                   attach-guid
