@@ -8,10 +8,6 @@
             [interceptors.users.attach-user :refer :all]
             [utils.constants :refer :all]))
 
-
-(defn- response-hello [request]
-  {:status 200 :body "Hello, world"})
-
 (def get-expanded-routes
    (fn
      [database-component]
