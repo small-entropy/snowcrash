@@ -1,12 +1,12 @@
 (ns snowcrash.system
   (:require [com.stuartsierra.component :as component]
-            [io.pedestal.http :as http]
             [components.pedestal :as p]
             [components.monger :as m]
             [components.service-map :as sm]
             [utils.constants :refer :all]))
 
 (defn new-system
+  "Function for create new system"
   [env get-expanded-routes]
   (component/system-map
     :env env
