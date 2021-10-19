@@ -13,3 +13,13 @@
    {:_id (ObjectId.) :name products-collection-name :create "001000" :read "111001" :update "001000" :delete "001000"}
    {:_id (ObjectId.) :name tags-collection-name :create "001000" :read "111001" :update "001000" :delete "001000"}
    ])
+
+(defn create
+  "Function for create new right nested document"
+  [name-right create-rule read-rule update-rule delete-rule]
+  {:_id (ObjectId.)
+   :name name-right
+   :create create-rule
+   :read read-rule
+   :update update-rule
+   :delete delete-rule})

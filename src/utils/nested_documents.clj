@@ -12,6 +12,18 @@
   (filter (fn [current-property]
             (= key (get current-property :key nil))) collection))
 
+(defn filter-by-name
+  "Function for filter nested documents fields by name"
+  [collection name]
+  (filter (fn [item]
+            (= name (get item :name nil))) collection))
+
+(defn exist-by-name?
+  "Function for check exist nested document in collection by id"
+  [collection name]
+  (let [founded (filter-by-name collection name)]
+    (if (= (count founded) 0) false true)))
+
 (defn exist-by-id?
   "Function for check exist nested document in collection by id"
   [collection id]

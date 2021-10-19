@@ -4,7 +4,7 @@
     [database.single.users-repository :as rep]
     [database.nested.profile :as prof]
     [database.nested.property :as prop]
-    [database.nested.right :as right]
+    [database.nested.right :as rght]
     [utils.check-access :as access]
     [utils.jwt :as jwt]
     [utils.rights :as ur]
@@ -34,7 +34,7 @@
                                                 :status     default-status
                                                 :profile    (prof/get-default-user-profile)
                                                 :properties (prop/get-default-user-properties)
-                                                :rights     (right/get-default-user-right)})
+                                                :rights     (rght/get-default-user-right)})
           rule (ur/get-user-rule document users-collection-name :read)
           user (rep/find-user-by-login connection login (get-fields-by-rule rule :my))]
       {:document user :token token })))
@@ -384,3 +384,96 @@
                       :property-id property-id
                       :key key
                       :value value}})))))
+
+(defn- get-user-right-by-id
+  [connection user-id]
+  (let [{_id :_id
+         login :login
+         rights :rights} (rep/find-user-by-id connection user-id ["_id" "login" "rights"])]
+    {:documents rights :user {:_id _id
+                              :login login}}))
+
+(defn get-user-rights
+  "Function for get user rights"
+  ([connection user-id]
+   (if (access/my-global? connection users-collection-name user-id :read)
+     (get-user-right-by-id connection user-id)
+     (throw (ex-info
+              "Hasn't access to get user rights"
+              {:alias "has-not-access"
+               :info {:user-id user-id}}))))
+  ([connection user-id decoded-id]
+   (if (access/other-global? connection users-collection-name decoded-id :read)
+     (get-user-right-by-id connection user-id)
+     (throw (ex-info
+              "Hasn't access to get other user rights"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id}})))))
+
+(defn get-user-right
+  "Function for get user right"
+  ([connection user-id property-id]
+   (let [{documents :documents user :user} (get-user-rights connection user-id)
+         right (filter-by-id documents property-id)]
+     {:document right :user user}))
+  ([connection user-id decoded-id property-id]
+   (let [{documents :documents user :user} (get-user-rights connection user-id decoded-id)
+         right (filter-by-id documents property-id)]
+     {:document right :user user})))
+
+(defn- add-user-right
+  [connection user-id name-right create-rule read-rule update-rule delete-rule]
+  (let [user (rep/find-user-by-id connection user-id [])
+        rights (get user :rights nil)
+        is-exist (exist-by-name? rights name-right)]
+    (if (true? is-exist)
+      (throw (ex-info
+               "User rights already exist"
+               {:alias "is-exist"
+                :info {:user-id user-id
+                       :right-name name-right
+                       :create-rule create-rule
+                       :read-rule read-rule
+                       :update-rule update-rule
+                       :delete-rule delete-rule}}))
+      (let [{_id :_id
+             login :login
+             updated-rights :rights} (rep/create-user-right
+                                       connection
+                                       user
+                                       name-right
+                                       create-rule
+                                       read-rule
+                                       update-rule
+                                       delete-rule
+                                       [])]
+        {:documents updated-rights :user {:_id _id :login login}}))))
+
+(defn create-user-right
+  "Function for create user right"
+  ([connection user-id name-right create-rule read-rule update-rule delete-rule]
+   (if (access/my-global? connection users-collection-name user-id :create)
+     (add-user-right connection user-id name-right create-rule read-rule update-rule delete-rule)
+     (throw (ex-info
+              "Hasn't access to create user right"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :name-right name-right
+                      :create-rule create-rule
+                      :read-rule read-rule
+                      :update-rule update-rule
+                      :delete-rule delete-rule}}))))
+  ([connection user-id decoded-id name-right create-rule read-rule update-rule delete-rule]
+   (if (access/other-global? connection users-collection-name decoded-id :create)
+     (add-user-right connection user-id name-right create-rule read-rule update-rule delete-rule)
+     (throw (ex-info
+              "Hasn't access to create other user right"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id
+                      :name-right name-right
+                      :create-rule create-rule
+                      :read-rule read-rule
+                      :update-rule update-rule
+                      :delete-rule delete-rule}})))))

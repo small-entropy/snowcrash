@@ -3,6 +3,7 @@
     [database.common.repository :as repository]
     [database.nested.profile :as prof]
     [database.nested.property :as prop]
+    [database.nested.right :as rght]
     [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
 
@@ -93,6 +94,16 @@
         new-property (prop/create key value)
         new-properties {:properties (conj (get user :properties []) new-property)}
         to-update (merge user new-properties)]
+    (repository/update-document connection users-collection-name user-id to-update)
+    (find-user-by-id connection user-id fields)))
+
+(defn create-user-right
+  "Function for create user right"
+  [connection user name-right create-rule read-rule update-rule delete-rule fields]
+  (let [user-id (get user :_id nil)
+        new-right (rght/create name-right create-rule read-rule update-rule delete-rule)
+        new-rights {:rights (conj (get user :rights []) new-right)}
+        to-update (merge user new-rights)]
     (repository/update-document connection users-collection-name user-id to-update)
     (find-user-by-id connection user-id fields)))
 
