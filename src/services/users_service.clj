@@ -477,3 +477,82 @@
                       :read-rule read-rule
                       :update-rule update-rule
                       :delete-rule delete-rule}})))))
+
+(defn- remove-user-property
+  [connection user-id property-id]
+  (let [founded-user (rep/find-user-by-id connection user-id [])
+        rights (get founded-user :rights [])
+        is-exist (exist-by-id? rights property-id)]
+    (if (true? is-exist)
+      (let [updated-rights (delete-from-list rights property-id)
+            to-update (merge founded-user {:rights updated-rights})
+            updated-user (rep/update connection user-id to-update [])]
+        {:documents (get updated-user :rights nil)
+         :user {:_id (get updated-user :_id nil)
+                :login (get updated-user :login nil)}})
+      (throw (ex-info
+               "User right not found"
+               {:alias "not-found"
+                :info {:user-id user-id
+                       :property-id property-id}})))))
+
+(defn delete-user-right
+  "Function for delete user right"
+  ([connection user-id property-id]
+   (if (access/my-global? connection users-collection-name user-id :delete)
+     (remove-user-property connection user-id property-id)
+     (throw (ex-info
+              "Hasn't access to delete user property"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :property-id property-id}}))))
+  ([connection user-id decoded-id property-id]
+   (if (access/other-global? connection users-collection-name decoded-id :delete)
+     (remove-user-property connection user-id property-id)
+     (throw (ex-info
+              "Hasn't access to delete other user right"
+              {:alias "has-not-access"
+               :info {:user-id user-id
+                      :decoded-id decoded-id
+                      :property-id property-id}})))))
+
+(defn- update-right
+  [connection user-id property-id to-update]
+  (let [founded-user (rep/find-user-by-id connection user-id [])
+        rights (get founded-user :rights nil)
+        is-exist (exist-by-id? rights property-id)]
+    (if (true? is-exist)
+      (let [updated-rights (map (fn [item]
+                                  (if (= (str (get item :_id nil)) property-id)
+                                    (merge item to-update)
+                                    item)) rights)
+            user-to-update (merge founded-user {:rights updated-rights})
+            updated-user (rep/update connection user-id user-to-update [])]
+        {:documents (get updated-user :rights nil)
+         :user {:_id (get updated-user :_id nil)
+                :login (get updated-user :login nil)}})
+      (throw (ex-info
+               "User right not found"
+               {:alias "not-found"
+                :info (merge {:user-id user-id
+                              :property-id property-id} to-update)})))))
+
+(defn update-user-right
+  "Function for update user right"
+  ([connection user-id property-id to-update]
+   (if (access/my-global? connection users-collection-name user-id :update)
+     (update-right connection user-id property-id to-update)
+     (throw (ex-info
+              "Hasn't access to update user right"
+              {:alias "has-not-access"
+               :info (merge {:user-id user-id
+                             :property-id property-id} to-update)}))))
+  ([connection user-id decoded-id property-id to-update]
+   (if (access/other-global? connection users-collection-name decoded-id :update)
+     (update-right connection user-id property-id to-update)
+     (throw (ex-info
+              "Hasn't access to update other user right"
+              {:alias "has-not-access"
+               :info (merge {:user-id user-id
+                             :decoded-id decoded-id
+                             :property-id property-id} to-update)})))))

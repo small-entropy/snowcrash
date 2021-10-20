@@ -38,7 +38,8 @@
            (attach-db database)
            (body-params/body-params)
            attach-user-data
-           update-user-property-interceptor]]
+           update-user-property-interceptor]
+     :route-name :update-user-property]
     ["/api/v1/users/:user-id/properties/:property-id"
      :delete [errors
               attach-guid
