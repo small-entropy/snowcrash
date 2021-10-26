@@ -4,78 +4,65 @@
     [database.nested.profile :as prof]
     [database.nested.property :as prop]
     [database.nested.right :as rght]
-    [utils.constants :refer :all])
-  (:import (org.bson.types ObjectId)))
-
-(defn- get-fields
-  [fields]
-  (if (nil? fields) [] fields))
+    [utils.constants :refer :all]
+    [utils.helpers :as h]
+    [utils.repository-helpers :as rh]))
 
 (defn create-user
   "Function for create user in database"
   [connection data]
-  (repository/create-document connection users-collection-name data))
+  (rh/create-document connection users-collection-name data))
 
 (defn find-user-by-login
   "Function for find user by login"
   [connection login fields]
-  (let [user (repository/get-collection-document
-                      connection
-                      users-collection-name
-                      {:login login
-                       :status default-status}
-                      true
-                      (get-fields fields))]
-    (if (nil? user)
-      (throw (ex-info
-               "Can not find user by login"
-               {:alias "can-not-find-user"
-                :info {:login login
-                       :fields fields}}))
-      user)))
+  (rh/find-document
+    connection
+    users-collection-name
+    {:login login :status default-status}
+    fields
+    "Can not find user by login"
+    "can-not-find-user"
+    {:login login :fields fields}))
 
 (defn find-user-by-id
-  "Function for find user by id.
-  If send id as string - create ObjectId from string & use it,
-  If send id as ObjectId - use it."
+  "Function for find user by id"
   [connection id fields]
-   (let [user (repository/get-collection-document
-                connection
-                users-collection-name
-                {:_id (if (string? id) (ObjectId. ^String id) id)
-                 :status default-status}
-                true
-                (get-fields fields))]
-     (if (nil? user)
-       (throw (ex-info
-                "Can not find user by id"
-                {:alias "can-not-find-user"
-                 :info {:id id
-                        :fields fields}}))
-       user)))
+  (rh/find-document
+    connection
+    users-collection-name
+    {:_id (h/value->object-id id) :status default-status}
+    fields
+    "Can not find user by id"
+    "can-not-find-user"
+    {:_id id :fields fields}))
 
 (defn get-users-list
   "Function for get users"
   [connection limit skip fields]
-  (let [opts {:collection users-collection-name
-              :limit limit
-              :skip skip}
-        filter {:status default-status}
-        sort {}
-        users (repository/get-list-by-query connection opts filter sort fields)]
-    (if (= (count users) 0)
-      (throw (ex-info
-               "Users list is empty"
-               {:alias "not-found"
-                :info {:limit limit
-                       :skip skip}}))
-      users)))
+  (rh/list-documents
+    connection
+    users-collection-name
+    limit
+    skip
+    {:status default-status}
+    {}
+    fields
+    "Users list is empty"
+    "not-found"
+    {:limit limit :skip skip}))
 
-(defn update
+(defn update-document
   "Function for update user document"
   [connection user-id to-update fields]
-  (repository/update-document connection users-collection-name user-id to-update)
-  (find-user-by-id connection user-id fields))
+  (rh/update-document
+    connection
+    users-collection-name
+    user-id
+    to-update
+    fields
+    "Can not find user"
+    "not-found"))
 
 (defn create-profile-property
   "Function for create user profile property by key & value"
@@ -109,4 +96,4 @@
 
 (defn get-total
   [connection]
-  (repository/get-collection-count connection users-collection-name {:status "active"}))
+  (rh/get-total-documents connection users-collection-name))

@@ -1,6 +1,7 @@
 (ns utils.constants)
 
 (defonce users-collection-name "users")
+(defonce languages-collection-name "languages")
 (defonce catalogs-collection-name "catalogs")
 (defonce categories-collection-name "categories")
 (defonce companies-collection-name "companies")

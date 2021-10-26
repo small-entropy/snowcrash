@@ -150,7 +150,7 @@
       {:document (rep/find-user-by-id connection decoded-id fields)}
       (let [derived-password (pwd/derive-password password)
             to-update (merge founded-user {:password derived-password})
-            user (rep/update connection decoded-id to-update fields)]
+            user (rep/update-document connection decoded-id to-update fields)]
         {:document user}))))
 
 (defn create-user-profile-property
@@ -188,7 +188,7 @@
      (if (true? is-exist)
        (let [updated-profile (update-list profile property-id key value)
              to-update (merge founded-user {:profile updated-profile})
-             updated-user (rep/update connection user-id to-update [])]
+             updated-user (rep/update-document connection user-id to-update [])]
          {:documents (get updated-user :profile nil)
           :user {:_id (get updated-user :_id nil)
                  :login (get updated-user :login)}})
@@ -220,7 +220,7 @@
      (if (true? is-exist)
        (let [updated-profile (delete-from-list profile property-id)
              to-update (merge founded-user {:profile updated-profile})
-             updated-user (rep/update connection user-id to-update [])]
+             updated-user (rep/update-document connection user-id to-update [])]
          {:documents (get updated-user :profile nil)
           :user {:_id (get updated-user :_id nil)
                  :login (get updated-user :login nil)}})
@@ -334,7 +334,7 @@
      (if (true? is-exist)
        (let [updated-properties (delete-from-list properties property-id)
              to-update (merge founded-user {:properties updated-properties})
-             updated-user (rep/update connection user-id to-update [])]
+             updated-user (rep/update-document connection user-id to-update [])]
          {:documents (get updated-user :properties nil)
           :user {:_id (get updated-user :_id nil)
                  :login (get updated-user :login nil)}})
@@ -362,7 +362,7 @@
      (if (true? is-exist)
        (let [updated-properties (update-list properties property-id key value)
              to-update (merge founded-user {:properties updated-properties})
-             updated-user (rep/update connection user-id to-update [])]
+             updated-user (rep/update-document connection user-id to-update [])]
          {:documents (get updated-user :properties nil)
           :user {:_id (get updated-user :_id nil)
                  :login (get updated-user :login nil)}})
@@ -486,7 +486,7 @@
     (if (true? is-exist)
       (let [updated-rights (delete-from-list rights property-id)
             to-update (merge founded-user {:rights updated-rights})
-            updated-user (rep/update connection user-id to-update [])]
+            updated-user (rep/update-document connection user-id to-update [])]
         {:documents (get updated-user :rights nil)
          :user {:_id (get updated-user :_id nil)
                 :login (get updated-user :login nil)}})
@@ -527,7 +527,7 @@
                                     (merge item to-update)
                                     item)) rights)
             user-to-update (merge founded-user {:rights updated-rights})
-            updated-user (rep/update connection user-id user-to-update [])]
+            updated-user (rep/update-document connection user-id user-to-update [])]
         {:documents (get updated-user :rights nil)
          :user {:_id (get updated-user :_id nil)
                 :login (get updated-user :login nil)}})
