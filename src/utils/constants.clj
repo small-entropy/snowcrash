@@ -21,4 +21,5 @@
 
 (defonce auth-header "authorization")
 (defonce default-status "active")
+(defonce inactive-status "inactive")
 (defonce default-empty-value "empty")

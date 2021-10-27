@@ -52,6 +52,28 @@
     alias
     {:_id document-id :fields fields}))
 
+(defn deactivate-document
+  "Default function for deactivate document"
+  [connection collection document-id fields message alias]
+  (let [founded-document (find-document
+                          connection
+                          collection
+                          {:_id document-id :status default-status}
+                          fields
+                          message
+                          alias
+                          {:_id document-id :fields fields})
+        to-update (merge founded-document {:status inactive-status})]
+    (r/update-document connection collection document-id to-update)
+    (find-document
+      connection
+      collection
+      {:_id (h/value->object-id document-id) :status default-status}
+      fields
+      message
+      alias
+      {:_id document-id :fields fields})))
+
 (defn get-total-documents
   ([connection collection]
    (get-total-documents connection collection {:status default-status}))

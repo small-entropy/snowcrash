@@ -36,7 +36,7 @@
     "not-found"
     {:limit limit :skip skip}))
 
-(defn update-document
+(defn update-language
   "Function for update language document"
   [connection language-id to-update fields]
   (rh/update-document
@@ -44,6 +44,17 @@
     languages-collection-name
     language-id
     to-update
+    fields
+    "Can not find language document"
+    "not-found"))
+
+(defn deactivate-language
+  "Function for find language document"
+  [connection document-id fields]
+  (rh/deactivate-document
+    connection
+    languages-collection-name
+    document-id
     fields
     "Can not find language document"
     "not-found"))
