@@ -1,6 +1,7 @@
 (ns interceptors.common.attach-user-data
-  (:require [utils.jwt :as jwt]
-            [utils.constants :refer :all])
+  (:require
+    [utils.jwt :as jwt]
+    [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
 
 (def attach-user-data

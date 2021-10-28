@@ -6,24 +6,24 @@
 (defn create-language
   "Function for create language document"
   [connection]
-  nil)
+  {:document nil})
 
 (defn get-languages
   "Function for get language documents list"
-  [connection]
-  nil)
+  [connection limit skip]
+  {:documents []})
 
 (defn get-language
   "Function for get language document"
-  [connection]
-  nil)
+  [connection document-id]
+  {:document nil})
 
 (defn update-language
   "Function for update language document"
   [connection document-id]
-  nil)
+  {:document nil})
 
 (defn deactivate-language
   "Function for deactivate language document"
   [connection document-id]
-  nil)
+  {:document nil})

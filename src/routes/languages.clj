@@ -2,9 +2,10 @@
   (:require [io.pedestal.http.body-params :as body-params]
             [interceptors.common.attach-db :refer :all]
             [interceptors.common.attach-guid :refer :all]
-            [interceptors.books.languages :refer :all]
             [interceptors.common.error-interceptor :refer :all]
-            [interceptors.users.attach-user :refer :all]
+            [interceptors.books.check-access :refer :all]
+            [interceptors.books.languages-interceptor :refer :all]
+            [interceptors.books.attach-doc-guid :refer :all]
             [utils.constants :refer :all]))
 
 (defn get-routes-v1
@@ -21,12 +22,13 @@
            attach-guid
            (attach-db database)
            (body-params/body-params)
-           attach-user-data
+           books-access
            create-language-interceptor]
      :route-name :create-language]
     ["/api/v1/languages/:document-id"
      :get [errors
            attach-guid
+           attach-doc-guid
            (attach-db database)
            get-language-interceptor]
      :route-name :get-language]
@@ -35,13 +37,13 @@
            attach-guid
            (attach-db database)
            (body-params/body-params)
-           attach-user-data
+           books-access
            update-language-interceptor]
      :route-name :update-language]
     ["/api/v1/languages/:document-id"
      :delete [errors
               attach-guid
               (attach-db database)
-              attach-user-data
+              books-access
               deactivate-language-interceptor]
      :route-name :deactivate-language]})

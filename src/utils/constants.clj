@@ -8,6 +8,8 @@
 (defonce products-collection-name "products")
 (defonce tags-collection-name "tags")
 
+(defonce books-rule-name "books")
+
 (defonce my-global :my-global)
 (defonce my-private :my-private)
 (defonce my-public :my-public)
