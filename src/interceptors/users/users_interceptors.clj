@@ -2,7 +2,7 @@
   (:require
     [services.users-service :as service]
     [utils.answers :refer :all]
-    [utils.helpers :refer :all]
+    [utils.helpers :as h]
     [utils.constants :refer :all]))
 
 ;; Interceptor for get paginate list users list
@@ -12,8 +12,8 @@
     (fn [context]
       (let [{request :request guid :guid connection :connection} context
             query-params (get request :query-params nil)
-            limit (if (nil? query-params) 10 (Integer/parseInt (get query-params :limit "10")))
-            skip (if (nil? query-params) 0 (Integer/parseInt (get query-params :skip "0")))
+            limit (h/get-limit query-params)
+            skip (h/get-skip query-params)
             {header-token auth-header} (get request :headers nil)
             {documents :documents token :token total :total} (service/get-users-list connection header-token limit skip)]
         (assoc context :response (ok guid documents {:token token
@@ -35,5 +35,5 @@
              {document :document} (if (nil? token)
                                     (service/get-user connection user-id)
                                     (service/get-user connection user-id decoded-id is-owner))]
-         (assoc context :response (ok guid document {:token (not-send token)
+         (assoc context :response (ok guid document {:token (h/not-send token)
                                                      :request guid}))))})

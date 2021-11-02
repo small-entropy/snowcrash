@@ -1,4 +1,5 @@
 (ns utils.helpers
+  (:require [utils.constants :refer :all])
   (:import (org.bson.types ObjectId)))
 
 (defn not-send
@@ -21,3 +22,16 @@
   [values]
   (if (nil? values) [] values))
 
+(defn get-limit
+  "Function for get limit from query params"
+  [query-params]
+  (if (nil? query-params)
+    default-limit
+    (Integer/parseInt (get query-params :limit default-limit-str))))
+
+(defn get-skip
+  "function for get limit from query params"
+  [query-params]
+  (if (nil? query-params)
+    default-skip
+    (Integer/parseInt (get query-params :skip default-skip-str))))

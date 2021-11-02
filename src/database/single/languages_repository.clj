@@ -21,6 +21,18 @@
     "not-found"
     {:_id id :fields fields}))
 
+(defn find-language-by-title
+  "Function for find language by title"
+  [connection title fields]
+  (rh/find-document
+    connection
+    languages-collection-name
+    {:title title :status default-status}
+    fields
+    "Can not find language"
+    "not-found"
+    {:title title :fields fields}))
+
 (defn get-language-list
   "Function for get languages list"
   [connection limit skip fields]

@@ -1,6 +1,7 @@
 (ns interceptors.books.languages-interceptor
   (:require
     [services.language-service :as service]
+    [utils.helpers :as h]
     [utils.answers :refer :all]))
 
 ;; Interceptor for get languages list
@@ -12,8 +13,8 @@
              connection :connection
              guid :guid} context
             query-params (get request :query-params nil)
-            limit (if (nil? query-params) 10 (Integer/parseInt (get query-params :limit "10")))
-            skip (if (nil? query-params) 0 (Integer/parseInt (get query-params :skip "0")))
+            limit (h/get-limit query-params)
+            skip (h/get-skip query-params)
             {documents :documents
              total :total} (service/get-languages connection limit skip)]
         (assoc context :response (ok guid documents {:request guid
@@ -26,11 +27,13 @@
   {:enter ::create-language-interceptor
    :enter
     (fn [context]
-      (let [{connection :connection
+      (let [{request :request
+             connection :connection
              token :token
              guid :guid
              user :user} context
-            {document :document} (service/create-language connection)]
+            {title :title values :values} (get request :json-params nil)
+            {document :document} (service/create-language connection title values user)]
         (assoc context :response (ok guid document {:request guid
                                                     :user user
                                                     :token token}))))})
@@ -42,9 +45,12 @@
     (fn [context]
       (let [{connection :connection
              guid :guid
-             document-id :document-id} context
-            {document :document} (service/get-language connection document-id)]
-        (assoc context :response (ok guid document {:request guid}))))})
+             document-id :document-id
+             accept-language :accept-language} context
+            {document :document} (service/get-language connection document-id accept-language)]
+        (assoc context :response (ok guid document {:_id document-id
+                                                    :request guid
+                                                    :accept-language accept-language}))))})
 
 ;; Interceptor for update language document
 (defn update-language-interceptor

@@ -22,7 +22,7 @@
            attach-guid
            (attach-db database)
            (body-params/body-params)
-           books-access
+           (books-access languages-collection-name)
            create-language-interceptor]
      :route-name :create-language]
     ["/api/v1/languages/:document-id"

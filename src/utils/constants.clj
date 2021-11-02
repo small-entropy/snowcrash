@@ -8,8 +8,6 @@
 (defonce products-collection-name "products")
 (defonce tags-collection-name "tags")
 
-(defonce books-rule-name "books")
-
 (defonce my-global :my-global)
 (defonce my-private :my-private)
 (defonce my-public :my-public)
@@ -22,6 +20,14 @@
 (defonce port 8822)
 
 (defonce auth-header "authorization")
+(defonce accept-language "accept-language")
 (defonce default-status "active")
 (defonce inactive-status "inactive")
 (defonce default-empty-value "empty")
+
+(defonce default-accept-language "ru")
+
+(defonce default-limit 10)
+(defonce default-limit-str "10")
+(defonce default-skip 0)
+(defonce default-skip-str "0")
