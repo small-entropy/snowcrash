@@ -5,6 +5,7 @@
             [routes.users :as users-routes]
             [routes.user-properties :as prop-routes]
             [routes.user-rights :as rights-routes]
+            [routes.languages :as lang-routes]
             [clojure.set :as set]))
 
 (def get-expanded-routes
@@ -16,4 +17,5 @@
                                    (users-routes/get-routes-v1 database)
                                    (prof-routes/get-routes-v1 database)
                                    (prop-routes/get-routes-v1 database)
-                                   (rights-routes/get-routes-v1 database))))))
+                                   (rights-routes/get-routes-v1 database)
+                                   (lang-routes/get-routes-v1 database))))))

@@ -46,7 +46,7 @@
   (find-document
     connection
     collection
-    {:_id (h/value->object-id document-id) :status default-status}
+    {:_id (h/value->object-id document-id)}
     fields
     message
     alias

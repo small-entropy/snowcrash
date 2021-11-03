@@ -35,15 +35,15 @@
                               :put :update
                               :delete :delete)
                  rule (rght/get-user-rule user collection action-key)]
-             (if (get rule action-key false)
+             (if (get rule other-global false)
                (assoc context
                  :document-id (if (nil? document-id) nil (ObjectId. ^String document-id))
                  :token token
                  :user {:_id (get user :_id nil)
-                        :login (get user :login nil)}
+                        :login (get user :login nil)})
                  (throw (ex-info
                           "Has not access to action"
                           {:alias "has-not-access"
                            :info {:_id document-id
                                   :user (get user :_id nil)
-                                  :token token}}))))))})
+                                  :token token}})))))})

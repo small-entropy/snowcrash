@@ -11,20 +11,23 @@
     (fn [context]
       (let [{request :request
              connection :connection
-             guid :guid} context
+             guid :guid
+             accept-language :accept-language} context
             query-params (get request :query-params nil)
             limit (h/get-limit query-params)
             skip (h/get-skip query-params)
             {documents :documents
-             total :total} (service/get-languages connection limit skip)]
+             total :total} (if (nil? accept-language)
+                                         (service/get-languages connection limit skip)
+                                         (service/get-languages connection limit skip accept-language))]
         (assoc context :response (ok guid documents {:request guid
                                                      :total total
                                                      :limit limit
                                                      :skip skip}))))})
 
 ;; Interceptor for get create language document
-(defn create-language-interceptor
-  {:enter ::create-language-interceptor
+(def create-language-interceptor
+  {:name ::create-language-interceptor
    :enter
     (fn [context]
       (let [{request :request
@@ -39,7 +42,7 @@
                                                     :token token}))))})
 
 ;; Interceptor for get language document
-(defn get-language-interceptor
+(def get-language-interceptor
   {:name ::get-language-interceptor
    :enter
     (fn [context]
@@ -47,13 +50,15 @@
              guid :guid
              document-id :document-id
              accept-language :accept-language} context
-            {document :document} (service/get-language connection document-id accept-language)]
+            {document :document} (if (nil? accept-language)
+                                   (service/get-language connection document-id)
+                                   (service/get-language connection document-id accept-language))]
         (assoc context :response (ok guid document {:_id document-id
                                                     :request guid
                                                     :accept-language accept-language}))))})
 
 ;; Interceptor for update language document
-(defn update-language-interceptor
+(def update-language-interceptor
   {:name ::update-language-interceptor
    :enter
     (fn [context]
@@ -69,7 +74,7 @@
                                                     :token token}))))})
 
 ;; Interceptor for deactivate language document
-(defn deactivate-language-interceptor
+(def deactivate-language-interceptor
   {:name ::deactivate-language-interceptor
    :enter
     (fn [context]

@@ -14,6 +14,7 @@
   #{["/api/v1/languages"
      :get [errors
            attach-guid
+           attach-doc-guid
            (attach-db database)
            list-languages-interceptor]
      :route-name :list-languages]
@@ -23,7 +24,7 @@
            (attach-db database)
            (body-params/body-params)
            (books-access languages-collection-name)
-           create-language-interceptor]
+            create-language-interceptor]
      :route-name :create-language]
     ["/api/v1/languages/:document-id"
      :get [errors
@@ -37,13 +38,13 @@
            attach-guid
            (attach-db database)
            (body-params/body-params)
-           books-access
+           (books-access languages-collection-name)
            update-language-interceptor]
      :route-name :update-language]
     ["/api/v1/languages/:document-id"
      :delete [errors
               attach-guid
               (attach-db database)
-              books-access
+              (books-access languages-collection-name)
               deactivate-language-interceptor]
      :route-name :deactivate-language]})
