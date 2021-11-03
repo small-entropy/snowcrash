@@ -22,7 +22,9 @@
 (defn get-languages
   "Function for get language documents list"
   ([connection limit skip]
-   {:documents (r/get-language-list connection limit skip [])})
+   (let [documents (r/get-language-list connection limit skip [])
+         total (r/get-total connection)]
+     {:documents documents :total total}))
   ([connection limit skip accept-language]
    (let [documents (r/get-language-list connection limit skip [])
          total (r/get-total connection)]
