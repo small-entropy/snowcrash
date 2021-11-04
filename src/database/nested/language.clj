@@ -4,7 +4,10 @@
 (defn create-language-value
   "Function for create nested language document"
   ([] (create-language-value {:title "unknown" :value nil}))
-  ([value] (merge {:_id (ObjectId.)} value)))
+  ([value] (merge {:_id (ObjectId.)} value))
+  ([id title value] {:_id (ObjectId. ^String id)
+                     :title title
+                     :value value}))
 
 (defn get-value-by-title
   "Function for get language translate from document by title"

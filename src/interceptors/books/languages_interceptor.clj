@@ -68,7 +68,8 @@
              token :token
              guid :guid
              document-id :document-id} context
-            {document :document} (service/update-language connection document-id)]
+            {title :title values :values} (get request :json-params nil)
+            {document :document} (service/update-language connection document-id title values)]
         (assoc context :response (ok guid document {:request guid
                                                     :user user
                                                     :token token}))))})

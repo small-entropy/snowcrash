@@ -2,6 +2,7 @@
 
 (defonce users-collection-name "users")
 (defonce languages-collection-name "languages")
+(defonce os-collection-name "operating-systems")
 (defonce catalogs-collection-name "catalogs")
 (defonce categories-collection-name "categories")
 (defonce companies-collection-name "companies")
@@ -24,8 +25,6 @@
 (defonce default-status "active")
 (defonce inactive-status "inactive")
 (defonce default-empty-value "empty")
-
-(defonce default-accept-language "ru")
 
 (defonce default-limit 10)
 (defonce default-limit-str "10")

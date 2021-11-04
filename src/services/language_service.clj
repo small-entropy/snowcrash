@@ -44,10 +44,22 @@
                  :title (get document :title nil)
                  :value (lang/get-value-by-title document accept-language)}})))
 
+(defn- get-updated-language-document
+  [document title values]
+  (merge document {:title title
+                   :values (map (fn [v]
+                                  (lang/create-language-value
+                                    (get v :_id nil)
+                                    (get v :title nil)
+                                    (get v :value nil))) values)}))
+
 (defn update-language
   "Function for update language document"
-  [connection document-id]
-  {:document nil})
+  [connection document-id title values]
+  (let [document (r/find-language-by-id connection document-id [])
+        to-update (get-updated-language-document document title values)
+        language (r/update-language connection document-id to-update [])]
+    {:document language}))
 
 (defn deactivate-language
   "Function for deactivate language document"
