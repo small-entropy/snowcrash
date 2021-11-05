@@ -13,6 +13,7 @@
    {:_id (ObjectId.) :name products-collection-name :create "001000" :read "111001" :update "001000" :delete "001000"}
    {:_id (ObjectId.) :name tags-collection-name :create "001000" :read "111001" :update "001000" :delete "001000"}
    {:_id (ObjectId.) :name languages-collection-name :create "000000" :read "001001" :update "000000" :delete "000000"}
+   {:_id (ObjectId.) :name os-collection-name :create "000000" :read "001001" :update "000000" :delete "000000"}
    ])
 
 (defn create

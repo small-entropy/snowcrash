@@ -13,6 +13,7 @@
   (let [connection (connection/get-connection-by-uri host dbname)]
     (indexes/create-unique-index connection users-collection-name (array-map :login 1))
     (indexes/create-unique-index connection languages-collection-name (array-map :title 1))
+    (indexes/create-unique-index connection os-collection-name (array-map :title 1))
     (connection/disconnect connection)))
 
 (defn -main
