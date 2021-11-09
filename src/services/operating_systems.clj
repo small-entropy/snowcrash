@@ -1,7 +1,8 @@
 (ns services.operating-systems
   (:require
     [database.single.os-repository :as r]
-    [utils.constants :refer :all]))
+    [utils.constants :refer :all]
+    [utils.books-service-helpers :as bsh]))
 
 (defn create-os-doc
   "Function for create os document"
@@ -23,46 +24,73 @@
 (defn create-operating-system
   "Function for create OS document in database"
   [connection title is-mobile is-pc is-console requirements user]
-  (let [new-os (create-os-doc title is-mobile is-pc is-console requirements user)
-        document (r/create-operating-system connection new-os)]
-    {:document document :user user}))
+  (bsh/create-document
+    connection
+    (create-os-doc title is-mobile is-pc is-console requirements user)
+    user
+    r/create-operating-system))
 
 (defn get-operating-systems
   "Function for get list of OS documents"
   ([connection limit skip]
-   (get-operating-systems connection limit skip false))
+   (bsh/get-documents-with-owner
+     connection
+     limit
+     skip
+     r/get-operating-systems-list
+     r/get-total
+     get-fields))
   ([connection limit skip with-owner]
-   (let [documents (r/get-operating-systems-list connection limit skip (get-fields with-owner))
-         total (r/get-total connection)]
-     {:documents documents :total total})))
+   (bsh/get-documents-with-owner
+     connection
+     limit
+     skip
+     with-owner
+     r/get-operating-systems-list
+     r/get-total
+     get-fields)))
 
 (defn get-operating-system
   "Function for get operating system document"
   ([connection document-id]
-   (get-operating-system connection document-id false))
+   (bsh/get-document-with-owner
+     connection
+     document-id
+     r/find-operating-system-by-id
+     get-fields))
   ([connection document-id with-owner]
-   {:document (r/find-operating-system-by-id connection document-id (get-fields with-owner))}))
+   (bsh/get-document-with-owner
+     connection
+     document-id
+     with-owner
+     r/find-operating-system-by-id
+     get-fields)))
 
-(defn- get-updated-document
-  [document title is-mobile is-pc is-console requirements]
-  (merge document {:title title
-                   :is-mobile is-mobile
-                   :is-pc is-pc
-                   :is-console is-console
-                   :requirements requirements}))
+(defn- get-to-update
+  [connection document-id title is-mobile is-pc is-console requirements]
+  (let [document (r/find-operating-system-by-id connection document-id [])]
+    (merge document {:title title
+                     :is-mobile is-mobile
+                     :is-pc is-pc
+                     :is-console is-console
+                     :requirements requirements})))
 
 (defn update-operating-system
   "Function for update OS document"
   [connection document-id title is-mobile is-pc is-console requirements]
-  (let [document (r/find-operating-system-by-id connection document-id [])
-        to-update (get-updated-document document title is-mobile is-pc is-console requirements)
-        os (r/update-operating-system connection document-id to-update (get-fields true))]
-    {:document os}))
+  (bsh/update-document
+    connection
+    document-id
+    (get-to-update connection document-id title is-mobile is-pc is-console requirements)
+    r/update-operating-system
+    get-fields))
 
 (defn deactivate-operating-system
   "Function for deactivate OS document"
   [connection document-id]
-  (let [document (r/find-operating-system-by-id connection document-id [])
-        to-update (merge document {:status inactive-status})
-        os (r/update-operating-system connection document-id to-update (get-fields true))]
-    {:document os}))
+  (bsh/deactivate-document
+    connection
+    document-id
+    r/find-operating-system-by-id
+    r/update-operating-system
+    get-fields))

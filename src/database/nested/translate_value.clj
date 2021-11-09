@@ -1,9 +1,9 @@
-(ns database.nested.language
+(ns database.nested.translate-value
   (:import (org.bson.types ObjectId)))
 
-(defn create-language-value
+(defn create-translate-value
   "Function for create nested language document"
-  ([] (create-language-value {:title "unknown" :value nil}))
+  ([] (create-translate-value {:title "unknown" :value nil}))
   ([value] (merge {:_id (ObjectId.)} value))
   ([id title value] {:_id (ObjectId. ^String id)
                      :title title
