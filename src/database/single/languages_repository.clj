@@ -50,11 +50,11 @@
 
 (defn update-language
   "Function for update language document"
-  [connection language-id to-update fields]
+  [connection document-id to-update fields]
   (rh/update-document
     connection
     languages-collection-name
-    language-id
+    document-id
     to-update
     fields
     "Can not find language document"

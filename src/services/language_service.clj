@@ -5,7 +5,7 @@
     [utils.books-service-helpers :as bsh]
     [database.nested.translate-value :as tv]))
 
-(defn create-language-doc
+(defn create-language-entity
   "Function for create language document"
   [title values user]
   {:title title
@@ -23,7 +23,7 @@
   [connection title values user]
   (bsh/create-document
     connection
-    (create-language-doc title values user)
+    (create-language-entity title values user)
     user
     r/create-language))
 
@@ -46,12 +46,13 @@
   ([connection limit skip accept-language]
    (bsh/get-documents
      connection
-     limit skip accept-language
+     limit
+     skip
+     accept-language
      r/get-language-list
      r/get-total
      get-fields
      build-value)))
-
 
 (defn get-language
   "Function for get language document"

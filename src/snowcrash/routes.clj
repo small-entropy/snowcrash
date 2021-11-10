@@ -7,6 +7,7 @@
             [routes.user-rights :as rights-routes]
             [routes.languages :as lang-routes]
             [routes.operating-systems :as os-routes]
+            [routes.countries :as countries-route]
             [clojure.set :as set]))
 
 (def get-expanded-routes
@@ -20,4 +21,5 @@
                                    (prop-routes/get-routes-v1 database)
                                    (rights-routes/get-routes-v1 database)
                                    (lang-routes/get-routes-v1 database)
-                                   (os-routes/get-routes-v1 database))))))
+                                   (os-routes/get-routes-v1 database)
+                                   (countries-route/get-routes-v1 database))))))
