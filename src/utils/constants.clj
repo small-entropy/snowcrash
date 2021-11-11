@@ -4,6 +4,7 @@
 (defonce languages-collection-name "languages")
 (defonce os-collection-name "operating-systems")
 (defonce countries-collection-name "countries")
+(defonce cities-collection-name "cities")
 (defonce catalogs-collection-name "catalogs")
 (defonce categories-collection-name "categories")
 (defonce companies-collection-name "companies")

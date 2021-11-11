@@ -34,7 +34,7 @@
 (defn get-document
   "Common function for get document by id"
   ([connection document-id fn-document fn-fields]
-   {:documents (fn-document connection document-id (fn-fields true))})
+   {:document (fn-document connection document-id (fn-fields true))})
   ([connection document-id accept-language fn-document fn-fields fn-value-builder]
    (let [document (fn-document connection document-id (fn-fields false))]
      {:document (fn-value-builder document accept-language)})))

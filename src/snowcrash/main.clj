@@ -14,6 +14,8 @@
     (indexes/create-unique-index connection users-collection-name (array-map :login 1))
     (indexes/create-unique-index connection languages-collection-name (array-map :title 1))
     (indexes/create-unique-index connection os-collection-name (array-map :title 1))
+    (indexes/create-unique-index connection countries-collection-name (array-map :title 1))
+    (indexes/create-unique-index connection cities-collection-name (array-map :title 1))
     (connection/disconnect connection)))
 
 (defn -main

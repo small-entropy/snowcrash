@@ -2,37 +2,37 @@
   (:require
     [database.single.countries-repository :as r]
     [utils.constants :refer :all]
-    [database.nested.translate-value]
     [utils.books-service-helpers :as bsh]
     [database.nested.translate-value :as tv]))
 
 (defn- get-fields
   [with-owner]
   (if with-owner
-    ["title" "time-zone" "values" "owner"]
-    ["title" "time-zone" "values"]))
+    ["title" "time-zones" "values" "owner"]
+    ["title" "time-zones" "values"]))
 
 (defn- build-value
   [doc accept-language]
   {:id (get doc :_id nil)
    :title (get doc :title nil)
-   :time-zone (get doc :time-zone nil)
+   :time-zones (get doc :time-zones nil)
    :value (tv/get-value-by-title doc accept-language)})
 
 (defn create-country-entity
-  [title time-zone values user]
+  "Function for create pure country entity"
+  [title time-zones values user]
   {:title title
-   :time-zone time-zone
+   :time-zones time-zones
    :values (map tv/create-translate-value values)
    :status default-status
    :owner user})
 
 (defn create-country
   "Function for create country document"
-  [connection title time-zone values user]
+  [connection title time-zones values user]
   (bsh/create-document
     connection
-    (create-country-entity title time-zone values user)
+    (create-country-entity title time-zones values user)
     user
     r/create-country))
 
@@ -75,10 +75,10 @@
      build-value)))
 
 (defn- get-to-update
-  [connection document-id title time-zone values]
+  [connection document-id title time-zones values]
   (let [document (r/find-country-by-id connection document-id [])]
     (merge document {:title title
-                      :time-zone time-zone
+                      :time-zones time-zones
                       :values (map (fn [v]
                                      (tv/create-translate-value
                                        (get v :_id nil)
@@ -86,12 +86,12 @@
                                        (get v :value))) values)})))
 
 (defn update-country
-  "function for update country document"
-  [connection document-id title time-zone values]
+  "Function for update country document"
+  [connection document-id title time-zones values]
   (bsh/update-document
     connection
     document-id
-    (get-to-update connection document-id title time-zone values)
+    (get-to-update connection document-id title time-zones values)
     r/update-country
     get-fields))
 
