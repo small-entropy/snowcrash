@@ -16,6 +16,7 @@
    {:_id (ObjectId.) :name os-collection-name :create "000000" :read "001001" :update "000000" :delete "000000"}
    {:_id (ObjectId.) :name countries-collection-name :create "000000" :read "001001" :update "000000" :delete "000000"}
    {:_id (ObjectId.) :name cities-collection-name :create "000000" :read "001001" :update "000000" :delete "000000"}
+   {:_id (ObjectId.) :name genres-collection-name :create "000000" :read "001001" :update "000000" :delete "000000"}
    ])
 
 (defn create

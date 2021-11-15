@@ -10,6 +10,7 @@
 (defonce companies-collection-name "companies")
 (defonce products-collection-name "products")
 (defonce tags-collection-name "tags")
+(defonce genres-collection-name "genres")
 
 (defonce my-global :my-global)
 (defonce my-private :my-private)

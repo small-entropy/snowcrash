@@ -9,6 +9,7 @@
             [routes.operating-systems :as os-routes]
             [routes.countries :as countries-route]
             [routes.cities :as cities-routes]
+            [routes.genres :as genres-routes]
             [clojure.set :as set]))
 
 (def get-expanded-routes
@@ -24,4 +25,5 @@
                                    (lang-routes/get-routes-v1 database)
                                    (os-routes/get-routes-v1 database)
                                    (countries-route/get-routes-v1 database)
-                                   (cities-routes/get-routes-v1 database))))))
+                                   (cities-routes/get-routes-v1 database)
+                                   (genres-routes/get-routes-v1 database))))))
