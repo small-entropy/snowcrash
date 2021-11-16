@@ -17,6 +17,7 @@
     (indexes/create-unique-index connection countries-collection-name (array-map :title 1))
     (indexes/create-unique-index connection cities-collection-name (array-map :title 1))
     (indexes/create-unique-index connection genres-collection-name (array-map :title 1))
+    (indexes/create-unique-index connection tags-collection-name (array-map :title 1))
     (connection/disconnect connection)))
 
 (defn -main

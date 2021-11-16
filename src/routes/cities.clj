@@ -9,7 +9,7 @@
             [utils.constants :refer :all]))
 
 (defn get-routes-v1
-  "Function for get configs  for cities book"
+  "Function for get configs for cities book"
   [database]
   #{["/api/v1/cities"
      :get [errors
