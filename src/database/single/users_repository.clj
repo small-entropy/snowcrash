@@ -95,5 +95,6 @@
     (find-user-by-id connection user-id fields)))
 
 (defn get-total
+  "Function for get total count users"
   [connection]
   (rh/get-total-documents connection users-collection-name))

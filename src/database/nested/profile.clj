@@ -18,6 +18,11 @@
    {:_id (ObjectId.) :key "patronymic" :value nil}
    ])
 
+(defn get-default-company-profile
+  "Function for get default company profile"
+  []
+  [])
+
 (defn create
   "Function for create profile property by key & value"
   [key value]

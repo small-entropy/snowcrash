@@ -10,9 +10,11 @@
     [utils.rights :as ur]
     [utils.constants :refer :all]
     [utils.helpers :refer :all]
-    [utils.nested-documents :refer :all])
+    [utils.nested-documents :refer :all]
+    [utils.helpers :as h])
   (:import (org.bson.types ObjectId)))
 
+;; Function for get document fields by rule & owner
 (defn- get-fields-by-rule
   [rule owner]
   (let [public-fields ["_id" "login" "profile"]
@@ -24,7 +26,11 @@
   "Function for register new user"
   [connection login password]
   (if (or (nil? login) (nil? password))
-    (throw (Exception. "Not send data for register user"))
+    (throw (ex-info
+             "Not send data for register user"
+             {:alias "not-send-some-data"
+              :info  {:login (h/not-send login)
+                      :password (h/not-send password)}}))
     (let [derived-password (pwd/derive-password password)
           oid (ObjectId.)
           token (jwt/encode oid login)

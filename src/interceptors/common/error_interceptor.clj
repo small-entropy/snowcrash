@@ -11,6 +11,7 @@
   "Private function for get HTTP code for errors by alias"
   [alias]
   (case alias
+    "internal-error" 500
     "can-not-create-unique-index" 500
     "can-not-create-index" 500
     "can-not-drop-index" 500

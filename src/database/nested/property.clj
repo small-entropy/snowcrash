@@ -6,6 +6,11 @@
   []
   [{:_id (ObjectId.) :key "banned" :value false}])
 
+(defn get-default-company-properties
+  "Function for get default company properties"
+  []
+  [])
+
 (defn create
   "Function for create user property by key & value"
   [key value]
