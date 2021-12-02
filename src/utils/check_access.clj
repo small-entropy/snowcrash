@@ -28,6 +28,15 @@
          rule (r/get-user-rule user collection-name action-key)]
      (get rule rule-key default-value))))
 
+(defn check-access->by-user
+  "Function for get user right by rule"
+  ([user collection-name action-key rule-key]
+   (let [rule (r/get-user-rule user collection-name action-key)]
+     (get rule rule-key false)))
+  ([user collection-name action-key rule-key default-value]
+   (let [rule (r/get-user-rule user collection-name action-key)]
+     (get rule rule-key default-value))))
+
 (defn my-global?
   "Function for check my global access"
   ([connection collection-name user-id action-key]
@@ -41,6 +50,13 @@
    (check-access connection collection-name user-id action-key other-global))
   ([connection collection-name user-id action-key default-value]
    (check-access connection collection-name user-id action-key other-global default-value)))
+
+(defn other-global?->by-user
+  "Function for check global access by rule"
+  ([user collection-name action-key]
+   (check-access->by-user user collection-name action-key other-global))
+  ([user collection-name action-key default-value]
+   (check-access->by-user user collection-name action-key other-global default-value)))
 
 (defn my-private?
   "Function for check my private access"

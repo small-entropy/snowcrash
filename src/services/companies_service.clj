@@ -109,3 +109,45 @@
                            :property-id property-id
                            :profile documents}})]
     {:document document :company company}))
+
+;; Private function for create profile property
+(defn- profile-property->create-&-save
+  [connection company key value]
+  (let [profile (get company :profile [])]
+    (if (exist-by-key? profile key)
+      (throw
+        (ex-info
+          "Profile property already exist"
+          {:alias "is-exist"
+           :info {:key key :value value :profile profile}}))
+      (let [{_id :_id
+             title :title
+             updated-profile :profile} (rep/create-profile-property connection company key value [])]
+        {:documents updated-profile :company {:_id _id
+                                              :title title}}))))
+;; Private function for check right on action.
+;; If action try call owner - return true.
+;; If action try call not owner - check right & return result
+(defn- check-right
+  [user company action-name]
+  (let [user-id (get user :_id nil)
+        owner (get company :owner nil)
+        is-owner (= (str (get owner :_id nil) (str user-id)))]
+    (if is-owner
+      is-owner
+      (access/other-global?->by-user user companies-collection-name action-name))))
+
+(defn create-company-profile-property
+  "Function for create company profile property"
+  [connection user company-id key value]
+  (let [company (rep/find-company-by-id connection company-id [])]
+    (if (check-right company user :read)
+      (profile-property->create-&-save connection company key value)
+      (throw
+        (ex-info
+          "Hasn't access to create other profile company property"
+          {:alias "has-not-access"
+           :info {:user-id (get user :_id nil)
+                  :company-id (get company :_id nil)
+                  :key key
+                  :value value}})))))
