@@ -73,8 +73,7 @@
       (throw (ex-info
                "Can not get owner id"
                {:alias "internal-error"
-                :info {:owner owner
-                       :company-id company-id}}))
+                :info {:owner owner :company-id company-id}}))
       (= (str owner-id) company-id))))
 
 (defn get-company
@@ -90,25 +89,22 @@
 (defn get-company-profile
   "Function for get company profile"
   [company]
-  (let [{id :_id
-         profile :profile
-         title :title} company]
+  (let [{id :_id profile :profile title :title} company]
     {:documents profile :company {:_id id :title title}}))
 
 (defn get-company-profile-property
   "Function for get company profile property"
   [company property-id]
-  (let [{documents :documents
-         company :company} company
+  (let [{_id :_id profile :profile title :title} company
         document (get-property
-                   documents
+                   profile
                    property-id
                    "Can not find company property"
                    {:alias "not-found"
                     :info {:company-id (get company :_id nil)
                            :property-id property-id
-                           :profile documents}})]
-    {:document document :company company}))
+                           :profile profile}})]
+    {:document document :company {:_id _id :title title}}))
 
 ;; Private function for create profile property
 (defn- profile-property->create
@@ -124,8 +120,7 @@
             {_id :_id
              title :title
              updated-profile :profile} (rep/create-profile-property connection company company-id key value [])]
-        {:documents updated-profile :company {:_id _id
-                                              :title title}}))))
+        {:documents updated-profile :company {:_id _id :title title}}))))
 ;; Private function for check right on action.
 ;; If action try call owner - return true.
 ;; If action try call not owner - check right & return result
@@ -213,11 +208,8 @@
   "Function for get company properties"
   [user company]
   (if (check-right company user :read)
-    (let [{_id :id
-           title :title
-           properties :properties} company]
-      {:documents properties :company {:_id _id
-                                       :title title}})
+    (let [{_id :id title :title properties :properties} company]
+      {:documents properties :company {:_id _id :title title}})
     (throw
       (ex-info
         "Hasn't access to get company properties"
@@ -230,9 +222,7 @@
   "Function for get company property"
   [user company property-id]
   (if (check-right company user :read)
-    (let [{_id :_id
-           title :title
-           properties :properties} company
+    (let [{_id :_id title :title properties :properties} company
           property (get-property
                      properties
                      property-id
@@ -242,8 +232,7 @@
                              :property-id property-id
                              :user {:_id (get user :_id nil)
                                     :login (get user :login nil)}}})]
-      {:document property :company {:_id _id
-                                    :title title}})
+      {:document property :company {:_id _id :title title}})
     (throw
       (ex-info
         "Hasn't access to get company property"
