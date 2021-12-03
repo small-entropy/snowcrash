@@ -116,10 +116,9 @@
           "Profile property already exist"
           {:alias "is-exist"
            :info {:key key :value value :profile profile}}))
-      (let [company-id (get company :_id nil)
-            {_id :_id
+      (let [{_id :_id
              title :title
-             updated-profile :profile} (rep/create-profile-property connection company company-id key value [])]
+             updated-profile :profile} (rep/create-profile-property connection company key value [])]
         {:documents updated-profile :company {:_id _id :title title}}))))
 ;; Private function for check right on action.
 ;; If action try call owner - return true.
