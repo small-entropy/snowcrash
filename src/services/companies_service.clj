@@ -89,29 +89,29 @@
 
 (defn get-company-profile
   "Function for get company profile"
-  [connection company-id]
+  [company]
   (let [{id :_id
          profile :profile
-         title :title} (rep/find-company-by-id connection company-id ["profile"])]
+         title :title} company]
     {:documents profile :company {:_id id :title title}}))
 
 (defn get-company-profile-property
   "Function for get company profile property"
-  [connection company-id property-id]
+  [company property-id]
   (let [{documents :documents
-         company :company} (get-company-profile connection company-id)
+         company :company} company
         document (get-property
                    documents
                    property-id
                    "Can not find company property"
                    {:alias "not-found"
-                    :info {:company-id company-id
+                    :info {:company-id (get company :_id nil)
                            :property-id property-id
                            :profile documents}})]
     {:document document :company company}))
 
 ;; Private function for create profile property
-(defn- profile-property->create-&-save
+(defn- profile-property->create
   [connection company key value]
   (let [profile (get company :profile [])]
     (if (exist-by-key? profile key)
@@ -120,9 +120,10 @@
           "Profile property already exist"
           {:alias "is-exist"
            :info {:key key :value value :profile profile}}))
-      (let [{_id :_id
+      (let [company-id (get company :_id nil)
+            {_id :_id
              title :title
-             updated-profile :profile} (rep/create-profile-property connection company key value [])]
+             updated-profile :profile} (rep/create-profile-property connection company company-id key value [])]
         {:documents updated-profile :company {:_id _id
                                               :title title}}))))
 ;; Private function for check right on action.
@@ -139,15 +140,115 @@
 
 (defn create-company-profile-property
   "Function for create company profile property"
-  [connection user company-id key value]
-  (let [company (rep/find-company-by-id connection company-id [])]
-    (if (check-right company user :read)
-      (profile-property->create-&-save connection company key value)
+  [connection user company key value]
+  (if (check-right company user :create)
+    (profile-property->create connection company key value)
+    (throw
+      (ex-info
+        "Hasn't access to create other profile company property"
+        {:alias "has-not-access"
+         :info {:user-id (get user :_id nil)
+                :company-id (get company :_id nil)
+                :key key
+                :value value}}))))
+
+;; Private function for update company profile property
+(defn- profile-property->update
+  [connection company property-id key value]
+  (let [company-id (get company :_id nil)
+        profile (get company :profile [])
+        updated-profile (update-list profile property-id key value)
+        to-update (merge company {:profile updated-profile})
+        updated-company (rep/update-document connection company-id to-update [])]
+    {:documents (get updated-company :profile [])
+     :company {:_id (get updated-company :_id nil)
+               :title (get updated-company :title nil)}}))
+
+(defn update-company-profile-property
+  "Function for update company profile property"
+  [connection user company property-id key value]
+  (if (check-right company user :update)
+    (profile-property->update connection company property-id key value)
+    (throw
+      (ex-info
+        "Hasn't access to update profile property"
+        {:alias "has-not-access"
+         :info {:property-id property-id
+                :company-id (get company :_id nil)
+                :key key
+                :value value}}))))
+
+;; Private function for delete company profile property
+(defn- profile-property->delete
+  [connection company property-id]
+  (let [profile (get company :profile [])]
+    (if (exist-by-id? profile property-id)
+      (let [company-id (get company :_id nil)
+            updated-profile (delete-from-list profile property-id)
+            to-update (merge company {:profile updated-profile})
+            updated-company (rep/update-document connection company-id to-update [])]
+        {:documents (get updated-company :profile [])
+         :company {:_id (get updated-company :_id nil)
+                   :title (get updated-company :title nil)}})
       (throw
         (ex-info
-          "Hasn't access to create other profile company property"
-          {:alias "has-not-access"
-           :info {:user-id (get user :_id nil)
-                  :company-id (get company :_id nil)
-                  :key key
-                  :value value}})))))
+          "Profile property not exist"
+          {:alias "not-found"
+           :info {:company-id (get company :_id nil)
+                  :property-id property-id}})))))
+
+(defn delete-company-profile-property
+  "Function for delete company profile property"
+  [connection user company property-id]
+  (if (check-right company user :delete)
+    (profile-property->delete connection company property-id)
+    (throw
+      (ex-info
+        "Hasn't access to delete company profile property"
+        {:alias "has-not-access"
+         :info {:company-id (get company :_id nil)
+                :property-id property-id}}))))
+
+(defn get-company-properties
+  "Function for get company properties"
+  [user company]
+  (if (check-right company user :read)
+    (let [{_id :id
+           title :title
+           properties :properties} company]
+      {:documents properties :company {:_id _id
+                                       :title title}})
+    (throw
+      (ex-info
+        "Hasn't access to get company properties"
+        {:alias "has-not-access"
+         :info {:company-id (get company :_id nil)
+                :user {:_id (get user :_id nil)
+                       :login (get user :login nil)}}}))))
+
+(defn get-company-property
+  "Function for get company property"
+  [user company property-id]
+  (if (check-right company user :read)
+    (let [{_id :_id
+           title :title
+           properties :properties} company
+          property (get-property
+                     properties
+                     property-id
+                     "Can not fond company property"
+                     {:alias "not-found"
+                      :info {:company-id _id
+                             :property-id property-id
+                             :user {:_id (get user :_id nil)
+                                    :login (get user :login nil)}}})]
+      {:document property :company {:_id _id
+                                    :title title}})
+    (throw
+      (ex-info
+        "Hasn't access to get company property"
+        {:alias "has-not-access"
+         :info {:company-id (get company :_id nil)
+                :property-id property-id
+                :user {:_id (get user :_id nil)
+                       :login (get user :login nil)}}}))))

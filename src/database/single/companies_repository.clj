@@ -41,13 +41,24 @@
 
 (defn create-profile-property
   "Function for create company profile property by key & value"
-  [connection company key value fields]
-  (let [company-id (get company :_id nil)
-        new-property (prop/create key value)
+  [connection company company-id key value fields]
+  (let [new-property (prop/create key value)
         new-profile {:profile (conj (get company :profile []) new-property)}
         to-update (merge company new-profile)]
     (repository/update-document connection companies-collection-name company-id to-update)
     (find-company-by-id connection company-id fields)))
+
+(defn update-document
+  "Function for update company document"
+  [connection company-id to-update fields]
+  (rh/update-document
+    connection
+    companies-collection-name
+    company-id
+    to-update
+    fields
+    "Can not find company"
+    "not-found"))
 
 (defn get-total
   "Function for get total count companies"
