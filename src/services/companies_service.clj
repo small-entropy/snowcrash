@@ -135,7 +135,7 @@
 (defn create-company-profile-property
   "Function for create company profile property"
   [connection user company key value]
-  (if (check-right company user :create)
+  (if (check-right user company :create)
     (profile-property->create connection company key value)
     (throw
       (ex-info
@@ -161,7 +161,7 @@
 (defn update-company-profile-property
   "Function for update company profile property"
   [connection user company property-id key value]
-  (if (check-right company user :update)
+  (if (check-right user company :update)
     (profile-property->update connection company property-id key value)
     (throw
       (ex-info
@@ -194,7 +194,7 @@
 (defn delete-company-profile-property
   "Function for delete company profile property"
   [connection user company property-id]
-  (if (check-right company user :delete)
+  (if (check-right user company :delete)
     (profile-property->delete connection company property-id)
     (throw
       (ex-info
@@ -206,7 +206,7 @@
 (defn get-company-properties
   "Function for get company properties"
   [user company]
-  (if (check-right company user :read)
+  (if (check-right user company :read)
     (let [{_id :id title :title properties :properties} company]
       {:documents properties :company {:_id _id :title title}})
     (throw
@@ -220,7 +220,7 @@
 (defn get-company-property
   "Function for get company property"
   [user company property-id]
-  (if (check-right company user :read)
+  (if (check-right user company :read)
     (let [{_id :_id title :title properties :properties} company
           property (get-property
                      properties
@@ -238,5 +238,111 @@
         {:alias "has-not-access"
          :info {:company-id (get company :_id nil)
                 :property-id property-id
+                :user {:_id (get user :_id nil)
+                       :login (get user :login nil)}}}))))
+
+;; Private function for create profile property
+(defn- company-property->create
+  [connection company key value]
+  (let [properties (get company :properties [])]
+    (if (exist-by-key? properties key)
+      (throw
+        (ex-info
+          "Profile property already exist"
+          {:alias "is-exist"
+           :info {:key key :value value :properties properties}}))
+      (let [{_id :_id
+             title :title
+             updated-properties :properties} (rep/create-compamy-property connection company key value [])]
+        {:documents updated-properties :company {:_id _id :title title}}))))
+
+(defn create-company-property
+  "Function for create company property"
+  [connection user company key value]
+  (if (check-right user company :create)
+    (company-property->create connection company key value)
+    (throw
+      (ex-info
+        "Hasn't access to create company property"
+        {:alias "has-not-access"
+         :info {:company-id (get company :_id nil)
+                :user {:_id (get user :_id nil)
+                       :login (get user :login nil)}
+                :key key
+                :value value}}))))
+
+;; Function for delete company property
+(defn- company-property->delete
+  "Function for delete property by id from company document"
+  [connection company property-id]
+  (let [properties (get company :properties [])]
+    (if (exist-by-id? properties property-id)
+      (let [updated-properties (delete-from-list properties nil)
+            to-update (merge company {:properties updated-properties})
+            {_id :_id
+             properties :properties
+             title :title} (rep/update-document
+                              connection
+                              (get company :_id nil)
+                              to-update
+                              [])]
+        {:documents properties :company {:_id _id :title title}})
+      (throw
+        (ex-info
+          "Company property not exist"
+          {:alis "not-found"
+           :info {:company-id (get company :_id nil) :property-id property-id} })))))
+
+(defn delete-company-property
+  "Function for delete company property"
+  [connection user company property-id]
+  (if (check-right user company :delete)
+    (company-property->delete connection company property-id)
+    (throw
+      (ex-info
+        "Hasn't access to create company property"
+        {:alias "has-not-access"
+         :info {:company-id (get company :_id nil)
+                :property-id property-id
+                :user {:_id (get user :_id nil)
+                       :login (get user :login nil)}}}))))
+
+;; Function for update company property
+(defn- company-property->update
+  [connection company property-id key value]
+  (let [properties (get company :properties [])]
+    (if (exist-by-id? properties property-id)
+      (let [updated-properties (update-list properties property-id key value)
+            to-update (merge company {:properties updated-properties})
+            {documents :properties
+             _id :_id
+             title :title} (rep/update-document
+                                      connection
+                                      (get company :_id nil)
+                                      to-update
+                                      [])]
+        {:documents documents :company {:_id _id :title title}})
+      (throw
+        (ex-info
+          "Company property not exist"
+          {:alias "not-found"
+           :info {:company-id (get company :_id nil)
+                  :property-id property-id
+                  :key key
+                  :value value}})))))
+
+(defn update-company-property
+  "Function for update company property"
+  [connection user company property-id key value]
+  (if (check-right user company :update)
+    (company-property->update connection company property-id key value)
+    (throw
+      (ex-info
+        "Hasn't access to update company property"
+        {:alis "has-not-access"
+         :info {:company-id (get company :_id nil)
+                :property-id property-id
+                :key key
+                :value value
                 :user {:_id (get user :_id nil)
                        :login (get user :login nil)}}}))))

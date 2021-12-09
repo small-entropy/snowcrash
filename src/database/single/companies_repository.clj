@@ -49,6 +49,16 @@
     (repository/update-document connection companies-collection-name company-id to-update)
     (find-company-by-id connection company-id fields)))
 
+(defn create-compamy-property
+  "Function for create company property by key & value"
+  [connection company key value fields]
+  (let [company-id (get company :_id nil)
+        new-property (prop/create key value)
+        new-properties {:properties (conj (get company :properties []) new-property)}
+        to-update (merge company new-properties)]
+    (repository/update-document connection companies-collection-name company-id to-update)
+    (find-company-by-id connection company-id fields)))
+
 (defn update-document
   "Function for update company document"
   [connection company-id to-update fields]
