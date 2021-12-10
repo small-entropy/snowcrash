@@ -3,6 +3,7 @@
     [database.common.repository :as repository]
     [database.nested.profile :as prof]
     [database.nested.property :as prop]
+    [database.nested.products :as prod]
     [utils.repository-helpers :as rh]
     [utils.constants :refer :all]
     [utils.helpers :as h]))
@@ -43,19 +44,29 @@
   "Function for create company profile property by key & value"
   [connection company key value fields]
   (let [company-id (get company :_id nil)
-        new-property (prop/create key value)
+        new-property (prof/create key value)
         new-profile {:profile (conj (get company :profile []) new-property)}
         to-update (merge company new-profile)]
     (repository/update-document connection companies-collection-name company-id to-update)
     (find-company-by-id connection company-id fields)))
 
-(defn create-compamy-property
+(defn create-company-property
   "Function for create company property by key & value"
   [connection company key value fields]
   (let [company-id (get company :_id nil)
         new-property (prop/create key value)
         new-properties {:properties (conj (get company :properties []) new-property)}
         to-update (merge company new-properties)]
+    (repository/update-document connection companies-collection-name company-id to-update)
+    (find-company-by-id connection company-id fields)))
+
+(defn create-company-product
+  "Function for create company property by key & value"
+  [connection company id title image uri fields]
+  (let [company-id (get company :_id nil)
+        new-product (prod/create id title image uri)
+        new-products {:products (conj (get company :products []) new-product)}
+        to-update (merge company new-products)]
     (repository/update-document connection companies-collection-name company-id to-update)
     (find-company-by-id connection company-id fields)))
 

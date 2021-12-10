@@ -49,9 +49,8 @@
                                                    :properties (prop/get-default-company-properties)
                                                    :owner owner
                                                    :staff [owner]
-                                                   :products {:total 0
-                                                              :list []}})]
-      {:document document })))
+                                                   :products []})]
+      {:document document :user owner})))
 
 (defn get-companies
   "Function for get companies list"
@@ -253,7 +252,7 @@
            :info {:key key :value value :properties properties}}))
       (let [{_id :_id
              title :title
-             updated-properties :properties} (rep/create-compamy-property connection company key value [])]
+             updated-properties :properties} (rep/create-company-property connection company key value [])]
         {:documents updated-properties :company {:_id _id :title title}}))))
 
 (defn create-company-property
@@ -316,11 +315,7 @@
             to-update (merge company {:properties updated-properties})
             {documents :properties
              _id :_id
-             title :title} (rep/update-document
-                                      connection
-                                      (get company :_id nil)
-                                      to-update
-                                      [])]
+             title :title} (rep/update-document connection (get company :_id nil) to-update [])]
         {:documents documents :company {:_id _id :title title}})
       (throw
         (ex-info
@@ -346,3 +341,61 @@
                 :value value
                 :user {:_id (get user :_id nil)
                        :login (get user :login nil)}}}))))
+
+(defn get-company-products
+  "Function for get company products"
+  [company]
+  {:documents (get company :products [])
+   :company {:_id (get company :_id nil)
+             :title (get company :title nil)}})
+
+(defn get-company-product
+  "Function for get company products"
+  [company product-id]
+  (let [products (get company :products [])
+        product (get-property
+                  products
+                  product-id
+                  "Can not find user property"
+                  {:alias "not-found"
+                   :info {:product-id product-id
+                          :company {:_id (get company :_id nil)
+                                    :title (get company :title)
+                                    :products products}}})]
+    {:document product :company {:_id (get company :_id nil)
+                                 :title (get company :title)}}))
+
+;; Function for create company product
+(defn- company-product->create
+  [connection company product-id title image uri]
+  (let [{_id :_id
+         title :title
+         products :products} (rep/create-company-product connection company product-id title image uri [])]
+    {:documents products :company {:_id _id :title title}}))
+
+(defn create-company-product
+  "Function for create company product"
+  [connection user company product-id title image uri]
+  (if (check-right user company :create)
+    (let [products (get company :products [])]
+      (if (exist-by-id? products product-id)
+        (throw
+          (ex-info
+            "Company product already exist"
+            {:alias "is-exist"
+             :info {:company-id (get company :_id nil)
+                    :product-id product-id
+                    :products products
+                    :title title
+                    :image image
+                    :uri uri}}))
+        (company-product->create connection company product-id title image uri)))
+    (throw
+      (ex-info
+        "Hasn't access to create company product"
+        {:alias "ha-not-access"
+         :info {:company-id (get company :_id nil)
+                :product-id product-id
+                :title title
+                :image image
+                :uri uri}}))))
